@@ -6,6 +6,7 @@ import { Tabs, Tab, Input } from "@heroui/react";
 import axios from "axios";
 import { ADMIN_APT_ROUTES } from "@/utils";
 import { apiClient } from "@/lib";
+import { ScrapingQueue } from "@/components/admin/scraping-queue";
 
 
 interface City {
@@ -91,6 +92,7 @@ const ScrapeData = () => {
           <Button size ="lg" className="w-full" color="primary" onClick={startScraping}> Scrape</Button>
         </CardFooter>
       </Card>
+      <ScrapingQueue />
     </section>
   );
 };
