@@ -29,3 +29,4 @@ export async function GET() {
     { status: 500 }
   );
 }
+

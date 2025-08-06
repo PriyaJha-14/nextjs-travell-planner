@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Card, CardFooter, Listbox, ListboxItem } from "@heroui/react";
 import { CardBody } from "@heroui/react";
 import { Tabs, Tab, Input } from "@heroui/react";
@@ -7,6 +7,7 @@ import axios from "axios";
 import { ADMIN_APT_ROUTES } from "@/utils";
 import { apiClient } from "@/lib";
 import { ScrapingQueue } from "@/components/admin/scraping-queue";
+import CurrentlyScrapingTable from "./components/currently-scraping-table/currently-scraping-table";
 
 
 interface City {
@@ -25,7 +26,7 @@ const ScrapeData = () => {
   const [selectedCityName, setSelectedCityName] = useState<undefined | string>(
     undefined
   );
-
+const [jobs, setJobs] = useState([])
   const searchCities = async (searchString: string) => {
     const response = await axios.get(
       `https://secure.geonames.org/searchJSON?q=${searchString}&maxRows=5&username=priya&style=SHORT`
@@ -34,11 +35,12 @@ const ScrapeData = () => {
     setCities(parsed ?? []);
   };
   const startScraping = async () =>{
-    await apiClient.post(ADMIN_APT_ROUTES.CREATE_JOB,{
-        url: 'https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCity}',
-        jobType: { type: "location"},
+    await apiClient.post(ADMIN_APT_ROUTES.CREATE_JOB, {
+        // Change the single quotes to backticks here
+        url: `https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCityName}`,
+        jobType: { type: "location" },
     });
-  };
+};
   
   const handleCitySelection = (key: React.Key) => {
     const selectedCityIdNumber = Number(key);
@@ -54,7 +56,17 @@ const ScrapeData = () => {
       setSelectedCityName(selectedCity.name);
     }
   };
-
+ useEffect(() => {
+  const getData = async () => {
+    const data = await apiClient.get(ADMIN_APT_ROUTES.JOB_DETAILS);
+    setJobs(data.data.jobs);
+  };
+  const interval = setInterval(() => getData(), 3000);
+  return () => {
+    clearInterval(interval);
+  };
+ }, []);
+ 
   return (
     <section className="m-10 grid grid-cols-3 gap-5">
       <Card className="col-span-2">
@@ -93,6 +105,10 @@ const ScrapeData = () => {
         </CardFooter>
       </Card>
       <ScrapingQueue />
+      <div className="col-span-3">
+        <CurrentlyScrapingTable jobs={jobs} />
+      </div>
+
     </section>
   );
 };
