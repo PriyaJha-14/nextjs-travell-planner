@@ -130,10 +130,10 @@ export default function CurrentlyScrapingTable({ jobs }: { jobs: JobType[] }) {
             </Link>
           );
         case "jobType":
-          return cellValue.type;
-        case "createdAt":
           // The change is here: wrap the text in a span with a black color class
-          return <span className="text-black">{formatDateAndTime(cellValue)}</span>; 
+          return <span className="text-black">{cellValue.type}</span>;
+        case "createdAt":
+          return <span className="text-black">{formatDateAndTime(cellValue)}</span>;
         case "status":
           return (
             <Chip
