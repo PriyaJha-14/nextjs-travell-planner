@@ -5,9 +5,10 @@ import Image from 'next/image';
 import { Card, CardHeader, CardBody, Input, CardFooter, Button } from '@heroui/react';
 import { Architects_Daughter } from "next/font/google";
 import { apiClient } from '@/lib';
-import { ADMIN_APT_ROUTES } from '@/utils';
+import { ADMIN_API_ROUTES } from '@/utils';
 import { useAppStore } from '@/store';
 import { useRouter } from 'next/navigation'; 
+import axios from 'axios';
 
 const ArchitectsDaughter = Architects_Daughter({
     weight: "400",
@@ -25,7 +26,7 @@ const Login = () => {
     
 
     const handleLogin = async () => {
-        const response = await apiClient.post(ADMIN_APT_ROUTES.LOGIN, {
+        const response = await axios.post(ADMIN_API_ROUTES.LOGIN, {
             email,
             password,
         });

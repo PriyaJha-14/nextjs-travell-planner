@@ -53,7 +53,8 @@ interface JobType {
   status: "active" | "failed" | "complete";
 }
 
-export default function CurrentlyScrapingTable({ jobs }: { jobs: JobType[] }) {
+// Pass a default empty array to the jobs prop
+export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] }) {
   // All hooks must be at the top level of the function
   const [isMounted, setIsMounted] = useState(false);
   const [filterValue, setFilterValue] = useState("");
@@ -71,6 +72,7 @@ export default function CurrentlyScrapingTable({ jobs }: { jobs: JobType[] }) {
   const headerColumns = columns;
 
   const filteredItems = React.useMemo(() => {
+    // Ensure `jobs` is always an array
     let filteredUsers = jobs;
 
     if (hasSearchFilter) {

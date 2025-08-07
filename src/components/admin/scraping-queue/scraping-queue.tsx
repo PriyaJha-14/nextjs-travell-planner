@@ -1,51 +1,50 @@
 import { apiClient } from "@/lib";
-import { ADMIN_APT_ROUTES } from "@/utils";
-import { useEffect } from "react";
-import { useState } from "react";
-import React from "react";
+import { ADMIN_API_ROUTES } from "@/utils/api-routes";
 import { Card, CardBody, CardHeader } from "@heroui/react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const ScrapingQueue = () => {
-    const [onGoingJobs, setOnGoingJobs] = useState(0);
+  const [ongoingJobs, setOngoingJobs] = useState(0);
 
-    useEffect(() => {
-        const getData = async () => {
-            const data = await apiClient.get(ADMIN_APT_ROUTES.JOB_DETAILS);
-            setOnGoingJobs(data.data.onGoingJobs);
-        };
-
-        const interval = setInterval(() => getData(), 3000);
-        return () => {
-            clearInterval(interval);
-        };
-    }, []);
-
-    const OnGoingJobColor = () =>{
-        if (onGoingJobs <= 5) return "bg-green-500";
-        else if (onGoingJobs <= 10) return "bg-orange-500";
-        else return "bg-red-500";
-
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const data = await axios.get(ADMIN_API_ROUTES.JOB_DETAILS);
+        setOngoingJobs(data.data.onGoingJobs);
+      } catch (error) {
+        console.error("Failed to fetch job details:", error);
+      }
     };
+    const interval = setInterval(() => getData(), 3000);
 
-    const OnGoingJobTextColor = () => {
-        if (onGoingJobs <= 5) return "text-green-500";
-        else if (onGoingJobs <= 10) return "text-orange-500";
-        else return "text-red-500;"
-
+    return () => {
+      clearInterval(interval);
     };
+  }, []);
 
+  const onGoingJobColor = () => {
+    if (ongoingJobs <= 5) return "bg-green-500";
+    else if (ongoingJobs <= 10) return "bg-orange-500";
+    else return "bg-red-500";
+  };
 
+  const onGoingJobTextColor = () => {
+    if (ongoingJobs <= 5) return "text-green-500";
+    else if (ongoingJobs <= 10) return "text-orange-500";
+    else return "text-red-500";
+  };
 
-    return (
+  return (
     <Card className="h-full">
       <CardHeader>Current Queue</CardHeader>
       <CardBody className="flex items-center justify-center">
         <div
-          className={`h-52 w-52 ${OnGoingJobColor()} rounded-full  flex items-center justify-center`}
+          className={`h-52 w-52 ${onGoingJobColor()} rounded-full  flex items-center justify-center`}
         >
           <div className="h-44 w-44 bg-white rounded-full flex items-center justify-center">
-            <h4 className={`text-6xl font-bold ${OnGoingJobTextColor()}`}>
-              {onGoingJobs}
+            <h4 className={`text-6xl font-bold ${onGoingJobTextColor()}`}>
+              {ongoingJobs}
             </h4>
           </div>
         </div>
@@ -55,4 +54,3 @@ const ScrapingQueue = () => {
 };
 
 export default ScrapingQueue;
-

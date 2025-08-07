@@ -1,5 +1,12 @@
-import { ADMIN_APT_ROUTES } from "./api-routes";
 
 
+// export const ADMIN_API_ROUTES = {
+//     JOB_DETAILS: "/api/admin/jobs",
+//     CREATE_JOB: "/api/admin/jobs", // Add this line
+// };
 
-export { ADMIN_APT_ROUTES};
+export const ADMIN_API_ROUTES = {
+    JOB_DETAILS: "/api/admin/jobs",
+    CREATE_JOB: "/api/admin/jobs",
+    LOGIN: "/api/admin/login",// Add this line
+};

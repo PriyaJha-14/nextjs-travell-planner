@@ -4,8 +4,9 @@ import { Button, Card, CardFooter, Listbox, ListboxItem } from "@heroui/react";
 import { CardBody } from "@heroui/react";
 import { Tabs, Tab, Input } from "@heroui/react";
 import axios from "axios";
-import { ADMIN_APT_ROUTES } from "@/utils";
-import { apiClient } from "@/lib";
+// Correct import to ADMIN_API_ROUTES
+import { ADMIN_API_ROUTES } from "@/utils";
+import { apiClient } from "@/lib"; // This is where the problematic import was coming from
 import { ScrapingQueue } from "@/components/admin/scraping-queue";
 import CurrentlyScrapingTable from "./components/currently-scraping-table/currently-scraping-table";
 
@@ -35,12 +36,12 @@ const [jobs, setJobs] = useState([])
     setCities(parsed ?? []);
   };
   const startScraping = async () =>{
-    await apiClient.post(ADMIN_APT_ROUTES.CREATE_JOB, {
-        // Change the single quotes to backticks here
-        url: `https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCityName}`,
-        jobType: { type: "location" },
+    // Use ADMIN_API_ROUTES here
+    await axios.post(ADMIN_API_ROUTES.CREATE_JOB,{
+      url: `https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCityName}`,
+      jobType: { type: "location"},
     });
-};
+  };
   
   const handleCitySelection = (key: React.Key) => {
     const selectedCityIdNumber = Number(key);
@@ -56,17 +57,18 @@ const [jobs, setJobs] = useState([])
       setSelectedCityName(selectedCity.name);
     }
   };
- useEffect(() => {
-  const getData = async () => {
-    const data = await apiClient.get(ADMIN_APT_ROUTES.JOB_DETAILS);
-    setJobs(data.data.jobs);
-  };
-  const interval = setInterval(() => getData(), 3000);
-  return () => {
-    clearInterval(interval);
-  };
- }, []);
- 
+  useEffect(() => {
+    const getData = async () => {
+      // Use ADMIN_API_ROUTES here
+      const data = await axios.get(ADMIN_API_ROUTES.JOB_DETAILS);
+      setJobs(data.data.jobs);
+    };
+    const interval = setInterval(() => getData(), 3000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+  
   return (
     <section className="m-10 grid grid-cols-3 gap-5">
       <Card className="col-span-2">
@@ -114,9 +116,4 @@ const [jobs, setJobs] = useState([])
 };
 
 
-
-
-
 export default ScrapeData;
-
-
