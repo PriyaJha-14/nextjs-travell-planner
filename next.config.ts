@@ -1,12 +1,14 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   experimental: {
-    // This line has been removed
+    instrumentationHook:true,
+    
   },
   env:{
-    NEXT_PUBLIC_DOMAIN:"http://localhost:3000",
-  },
+    NEXT_PUBLIC_DOMAIN: "http://localhost:3000",
+  }
+  
 };
 
-export default nextConfig;
+module.exports = nextConfig;
+

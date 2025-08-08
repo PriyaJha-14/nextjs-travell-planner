@@ -1,11 +1,8 @@
-const baseRoute = '${process.env.NEXT_PUBLIC_DOMAIN}/api';
-
-
+// Corrected code for src/utils/api-routes.ts
+const baseRoute = `${process.env.NEXT_PUBLIC_DOMAIN}/api`;
 
 export const ADMIN_API_ROUTES = {
-    LOGIN: "/admin/login",
-  CREATE_JOB: "/admin/createJob",
-  JOB_DETAILS: "/admin/jobDetails",
+    LOGIN: `${baseRoute}/admin/login`,
+    CREATE_JOB: `${baseRoute}/admin/create-job`,
+    JOB_DETAILS: `${baseRoute}/admin/jobs`, // Assuming this is the correct URL
 };
-
-

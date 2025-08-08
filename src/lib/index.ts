@@ -2,5 +2,9 @@
 import prisma from './prisma';
 import apiClient from './api-client';
 
-// The Redis connection is no longer exported here
+// Remove the following lines
+// import { connection } from "./redis";
+// import { importQueue } from "./queue";
+
+// Export only client-safe modules
 export { prisma, apiClient };

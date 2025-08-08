@@ -10,7 +10,7 @@ const ScrapingQueue = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const data = await axios.get(ADMIN_API_ROUTES.JOB_DETAILS);
+        const data = await apiClient.get(ADMIN_API_ROUTES.JOB_DETAILS);
         setOngoingJobs(data.data.onGoingJobs);
       } catch (error) {
         console.error("Failed to fetch job details:", error);
