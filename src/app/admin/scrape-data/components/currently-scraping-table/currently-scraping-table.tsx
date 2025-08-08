@@ -53,7 +53,6 @@ interface JobType {
   status: "active" | "failed" | "complete";
 }
 
-// Pass a default empty array to the jobs prop
 export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] }) {
   // All hooks must be at the top level of the function
   const [isMounted, setIsMounted] = useState(false);
@@ -72,7 +71,6 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
   const headerColumns = columns;
 
   const filteredItems = React.useMemo(() => {
-    // Ensure `jobs` is always an array
     let filteredUsers = jobs;
 
     if (hasSearchFilter) {
@@ -127,14 +125,16 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
       switch (columnKey) {
         case "url":
           return (
-            <Link href={cellValue} target="_blank">
+            // The change is here: added a text-blue-500 class
+            <Link className="text-blue-500" href={cellValue} target="_blank">
               {cellValue}
             </Link>
           );
         case "jobType":
-          // The change is here: wrap the text in a span with a black color class
+          // The change is here: added a text-black class
           return <span className="text-black">{cellValue.type}</span>;
         case "createdAt":
+          // The change is here: added a text-black class
           return <span className="text-black">{formatDateAndTime(cellValue)}</span>;
         case "status":
           return (
