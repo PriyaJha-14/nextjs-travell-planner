@@ -1,6 +1,6 @@
 "use client";
-import type {SVGProps} from "react";
-import type {Selection, ChipProps, SortDescriptor} from "@heroui/react";
+import type { SVGProps } from "react";
+import type { Selection, ChipProps, SortDescriptor } from "@heroui/react";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -66,7 +66,6 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
   });
   const [page, setPage] = useState(1);
 
-  // All useMemo and useCallback hooks must also be here
   const hasSearchFilter = Boolean(filterValue);
   const headerColumns = columns;
 
@@ -125,16 +124,15 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
       switch (columnKey) {
         case "url":
           return (
-            // The change is here: added a text-blue-500 class
             <Link className="text-blue-500" href={cellValue} target="_blank">
               {cellValue}
             </Link>
           );
         case "jobType":
-          // The change is here: added a text-black class
-          return <span className="text-black">{cellValue.type}</span>;
+          // The change is here: check if cellValue is an object before accessing 'type'
+          const jobTypeValue = typeof cellValue === 'object' && cellValue !== null ? cellValue.type : cellValue;
+          return <span className="text-black">{jobTypeValue}</span>;
         case "createdAt":
-          // The change is here: added a text-black class
           return <span className="text-black">{formatDateAndTime(cellValue)}</span>;
         case "status":
           return (
@@ -147,7 +145,6 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
               {cellValue}
             </Chip>
           );
-
         default:
           return cellValue;
       }
