@@ -1,3 +1,5 @@
+"use client";
+
 import { apiClient } from "@/lib";
 import { ADMIN_API_ROUTES } from "@/utils/api-routes";
 import { Card, CardBody, CardHeader } from "@heroui/react";
