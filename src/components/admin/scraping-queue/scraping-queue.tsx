@@ -3,7 +3,7 @@
 import { apiClient } from "@/lib";
 import { ADMIN_API_ROUTES } from "@/utils/api-routes";
 import { Card, CardBody, CardHeader } from "@heroui/react";
-import axios from "axios";
+// import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 const ScrapingQueue = () => {
