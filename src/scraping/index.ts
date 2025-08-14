@@ -1,3 +1,3 @@
-import { startLocationScarping } from "./location-scraping";
+import { startLocationScraping } from "./location-scraping";
 
-export { startLocationScarping };
+export { startLocationScraping };

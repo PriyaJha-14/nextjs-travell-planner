@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook:true,
-    
-  },
-  env:{
-    NEXT_PUBLIC_DOMAIN: "http://localhost:3000",
-  }
-  
+    experimental: {
+        // The `instrumentationHook` flag is no longer needed in modern Next.js.
+    },
+    instrumentation: true, // This line enables your worker
+    env: {
+        NEXT_PUBLIC_DOMAIN: "http://localhost:3000",
+    },
 };
 
 module.exports = nextConfig;
-

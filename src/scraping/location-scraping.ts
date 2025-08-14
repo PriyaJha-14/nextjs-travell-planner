@@ -5,7 +5,7 @@ interface PackageInfo {
     name: string;
 }
 
-export const startLocationScarping = async (
+export const startLocationScraping = async (
     page: Page
 ): Promise<PackageInfo[]> => {
     return await page.evaluate(()=> {
