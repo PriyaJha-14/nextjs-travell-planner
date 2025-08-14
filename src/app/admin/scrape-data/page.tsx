@@ -39,7 +39,8 @@ const [jobs, setJobs] = useState([])
     // Use ADMIN_API_ROUTES here
     await axios.post(ADMIN_API_ROUTES.CREATE_JOB,{
       url: `https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCityName}`,
-      jobType: { type: "location"},
+      // jobType: { type: "location"},
+      jobType: { type: "location" },
     });
   };
   

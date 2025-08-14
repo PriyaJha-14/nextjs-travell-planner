@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: import('next').NextConfig = {
     experimental: {
         // The `instrumentationHook` flag is no longer needed in modern Next.js.
     },

@@ -1,4 +1,4 @@
-// import puppeteer from "puppeteer";
+// // import puppeteer from "puppeteer";
 import { Browser } from "puppeteer";
 import { startLocationScraping } from "./scraping";
 import { default as prisma } from "@/lib/prisma";
@@ -44,3 +44,8 @@ export const register = async () => {
       });
   }
 };
+
+
+
+
+
