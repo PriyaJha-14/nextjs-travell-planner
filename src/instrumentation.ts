@@ -11,7 +11,7 @@ export const register = async () => {
     const puppeteer = await import("puppeteer");
     // const BROWSER_WS = "wss://brd-customer-hl_b90fade8-zone-smartscrape:v1vb43yptwed@brd.superproxy.io:9222";
 
-    const BROWSER_WS = `wss://brd-customer-${process.env.hl_9a1ef175}-zone-${process.env.smartscrape}:${process.env.ezfhjjsqay1y}@brd.superproxy.io:9222`;
+    const BROWSER_WS = `wss://brd-customer-${process.env.hl_b90fade8}-zone-${process.env.smartscrape}:${process.env.v1vb43yptwed}@brd.superproxy.io:9222`;
 
     
     new Worker("jobsQueue", async (job) => {

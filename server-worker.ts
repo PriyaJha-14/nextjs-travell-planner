@@ -11,7 +11,7 @@
 
 // gpt-code
 
-
+import "dotenv/config";
 import puppeteer from "puppeteer-core";
 import Redis from "ioredis";
 
@@ -19,8 +19,12 @@ import Redis from "ioredis";
 // const BROWSER_WS =
 //   "wss://brd-customer-hl_9a1ef175-zone-smartscrape:ezfhjjsqay1y@brd.superproxy.io:9222";
 
-const BROWSER_WS = `wss://brd-customer-${process.env.hl_9a1ef175}-zone-${process.env.smartscrape}:${process.env.ezfhjjsqay1y}@brd.superproxy.io:9222`;
-
+const BROWSER_WS = `wss://brd-customer-${process.env.hl_b90fade8}-zone-${process.env.smartscrape}:${process.env.v1vb43yptwed}@brd.superproxy.io:9222`;
+console.log("🔑 Bright Data creds loaded:", {
+  customer: process.env.BRIGHT_DATA_CUSTOMER,
+  zone: process.env.BRIGHT_DATA_ZONE,
+  pass: process.env.BRIGHT_DATA_PASSWORD ? "***" : "MISSING",
+});
 
 // Connect to Redis
 const redis = new Redis();
