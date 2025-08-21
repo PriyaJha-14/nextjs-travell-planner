@@ -9,7 +9,10 @@ export const register = async () => {
     const { connection } = await import("@/lib/redis.server");
     const { jobsQueue } = await import("@/lib/queue");
     const puppeteer = await import("puppeteer");
-    const BROWSER_WS = "wss://brd-customer-hl_9a1ef175-zone-smartscrape:ezfhjjsqay1y@brd.superproxy.io:9222";
+    // const BROWSER_WS = "wss://brd-customer-hl_b90fade8-zone-smartscrape:v1vb43yptwed@brd.superproxy.io:9222";
+
+    const BROWSER_WS = `wss://brd-customer-${process.env.hl_9a1ef175}-zone-${process.env.smartscrape}:${process.env.ezfhjjsqay1y}@brd.superproxy.io:9222`;
+
     
     new Worker("jobsQueue", async (job) => {
       let browser: undefined | Browser = undefined;

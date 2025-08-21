@@ -25,35 +25,39 @@
 
 // src/app/api/admin/create-job/route.ts
 
+// src/app/api/admin/create-job/route.ts
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib";
-import { jobsQueue } from "@/lib/queue";
+import Redis from "ioredis";
 
-// ✅ Handles POST request to create a new scraping job
+const redis = new Redis(); // connect to Redis
+
 export async function POST(request: Request) {
+  console.log("📩 Received POST /api/admin/create-job");
+
   try {
     const { url, jobType } = await request.json();
+    console.log("Payload received:", { url, jobType });
 
-
-    console.log("Received request method:", request.method); 
-    console.log("Payload received:", { url, jobType });       
-
-  
+    // Save to DB
     const response = await prisma.jobs.create({ data: { url, jobType } });
+    console.log("✅ Job saved in DB with id:", response.id);
 
-    
-    await jobsQueue.add("new location", {
-      url,
-      jobType,
-      id: response.id,
-    });
+    // Push to Redis queue
+    await redis.rpush(
+      "scrape-jobs",
+      JSON.stringify({ url, jobType, id: response.id })
+    );
+    console.log("📌 Job pushed into Redis queue");
 
     return NextResponse.json({ jobCreated: true }, { status: 201 });
   } catch (error: any) {
-    console.error("Error in create-job API:", error); 
+    console.error("❌ Error in create-job API:", error);
     return NextResponse.json(
       { message: "An unexpected error occurred.", error: error.message },
       { status: 500 }
     );
   }
 }
+
