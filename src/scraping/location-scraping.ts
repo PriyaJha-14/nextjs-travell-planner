@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { Page } from "puppeteer";
+import { Page } from "puppeteer-core";
 
 interface PackageInfo {
   id: string | null;

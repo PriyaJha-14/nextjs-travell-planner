@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev & tsx server-worker.ts",
-    "start": "next start & node server-worker.js",
+    "dev": "next dev",
+    "start": "next start",
     "build": "next build",
     "lint": "next lint"
   },
@@ -20,7 +20,7 @@
     "jose": "^6.0.12",
     "next": "15.3.5",
     "prisma": "^6.12.0",
-    "puppeteer": "^24.16.1",
+    "puppeteer-core": "^24.17.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.0.0",

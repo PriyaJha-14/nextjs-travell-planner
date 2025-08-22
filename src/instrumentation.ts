@@ -1,81 +1,131 @@
-// // import puppeteer from "puppeteer";
-import { Browser } from "puppeteer";
+// instrumentation.ts
+
 import { startLocationScraping } from "./scraping";
+import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
 
+console.log("🚀 instrumentation.ts loaded");
+
 export const register = async () => {
-  if (process.env.NEXT_RUNTIME === "node.js") {
+  console.log("📡 register() triggered, runtime:", process.env.NEXT_RUNTIME);
+
+  if (process.env.NEXT_RUNTIME === "nodejs") {
     const { Worker } = await import("bullmq");
     const { connection } = await import("@/lib/redis.server");
     const { jobsQueue } = await import("@/lib/queue");
-    const puppeteer = await import("puppeteer");
-    // const BROWSER_WS = "wss://brd-customer-hl_b90fade8-zone-smartscrape:v1vb43yptwed@brd.superproxy.io:9222";
+    const puppeteer = await import("puppeteer-core");
 
-    const BROWSER_WS = `wss://brd-customer-${process.env.hl_b90fade8}-zone-${process.env.smartscrape}:${process.env.v1vb43yptwed}@brd.superproxy.io:9222`;
+    // ✅ Bright Data WS endpoint
+    const BROWSER_WS = `wss://brd-customer-${process.env.BRIGHT_DATA_CUSTOMER}-zone-${process.env.BRIGHT_DATA_ZONE}:${process.env.BRIGHT_DATA_PASSWORD}@brd.superproxy.io:9222`;
 
-    
-    new Worker("jobsQueue", async (job) => {
-      let browser: undefined | Browser = undefined;
-      try {
-        browser = await puppeteer.connect({
-          browserWSEndpoint: BROWSER_WS,
+    console.log("🔑 Bright Data creds loaded:", {
+      customer: process.env.BRIGHT_DATA_CUSTOMER,
+      zone: process.env.BRIGHT_DATA_ZONE,
+      pass: process.env.BRIGHT_DATA_PASSWORD ? "***" : "MISSING",
+    });
+
+    new Worker(
+      "jobsQueue",
+      async (job) => {
+        let browser: Browser | undefined;
+
+        console.log(`👷 Worker picked up job:`, {
+          id: job.data.id,
+          type: job.data.jobType?.type,
+          url: job.data.url,
         });
-        const page = await browser.newPage();
-        console.log("Connected! Navigating to " + job.data.url);
-        await page.goto(job.data.url, { timeout: 20000 });
-        console.log("Navigated! Scraping page content...");
-        const html = await page.content();
-        console.log(html);
 
-
-        if (job.data.jobType.type === "location") {
-          // await page.goto(job.data.url, { timeout: 10000 });
-          // console.log("Navigated! Scraping page content...");
-          await page.waitForSelector(".packages-container", { timeout: 30000 });
-          const packages = await startLocationScraping(page);
-          await prisma.jobs.update({
-            where: { id: job.data.update },
-            data: { isComplete: true, status: "complete"},
+        try {
+          // 1. Connect to Bright Data browser
+          // 1. Connect to Bright Data browser
+          browser = await puppeteer.connect({
+            browserWSEndpoint: BROWSER_WS,
           });
-          for (const pkg of packages) {
-            const jobCreated = await prisma.jobs.findFirst({
-              where: {
-                url: `https://packages.yatra.com/holidays/intl/details.htm?packageId=${pkg?.id}`,
-              },
+
+          const page = await browser.newPage();
+          await page.setViewport({ width: 1366, height: 768 });
+
+          console.log("🌍 Navigating to:", job.data.url);
+          await page.goto(job.data.url, {
+            timeout: 30000,
+            waitUntil: "domcontentloaded",
+          });
+
+
+          // 2. Handle job types
+          if (job.data.jobType.type === "location") {
+            console.log("📌 Starting location scrape...");
+
+            await page.waitForSelector(".packages-container", { timeout: 30000 });
+            const packages = await startLocationScraping(page);
+
+            console.log(`✅ Scraped ${packages.length} packages from ${job.data.url}`);
+            if (packages.length > 0) {
+              console.log("📦 Sample package:", packages[0]);
+            }
+
+            // mark this job as complete
+            await prisma.jobs.update({
+              where: { id: job.data.id },
+              data: { isComplete: true, status: "complete" },
             });
-            if (!jobCreated) {
-              const job = await prisma.jobs.create({
-                data: {
-                  url: `https://packages.yatra.com/holidays/intl/details.htm?packageId=${pkg?.id}`,
-                  jobType: { type: "package" },
-                },
+
+            // enqueue new package jobs
+            for (const pkg of packages) {
+              const packageUrl = `https://packages.yatra.com/holidays/intl/details.htm?packageId=${pkg?.id}`;
+              const jobCreated = await prisma.jobs.findFirst({
+                where: { url: packageUrl },
+
+
               });
-              jobsQueue.add("package", { ...job, packageDetails: pkg});
+
+              if (!jobCreated) {
+                const newJob = await prisma.jobs.create({
+                  data: {
+                    url: packageUrl,
+                    jobType: { type: "package" },
+                  },
+                });
+
+                await jobsQueue.add("package", { ...newJob, packageDetails: pkg });
+                console.log("🆕 Enqueued package job:", packageUrl);
+              }
+            }
+          } else if (job.data.jobType.type === "package") {
+            console.log("📦 Handling package job:", job.data.url);
+
+            // TODO: implement package scraper
+          } else {
+            console.warn("⚠️ Unknown job type:", job.data.jobType);
+          }
+        } catch (error) {
+          console.error("❌ Worker error:", error);
+
+          try {
+            await prisma.jobs.update({
+              where: { id: job.data.id },
+              data: { isComplete: true, status: "failed" },
+            });
+          } catch (dbError) {
+            console.error("❌ Failed to update job status in DB:", dbError);
+          }
+        } finally {
+          if (browser) {
+            try {
+              await browser.close();
+              console.log("✅ Browser closed");
+            } catch (closeErr) {
+              console.error("⚠️ Error closing browser:", closeErr);
             }
           }
-        } else if (job.data.jobType.type === "package") {
-          console.log(job.data);
         }
-      } catch (error) {
-        console.log(error);
-        await prisma.jobs.update({
-          where: { id: job.data.id },
-          data: { isComplete: true, status: "failed" },
-        });
-      } finally {
-        await browser?.close();
-        console.log("Browser closed successfully");
-      }
-    },
+      },
       {
-        connection: connection,
+        connection,
         concurrency: 10,
         removeOnComplete: { count: 1000 },
         removeOnFail: { count: 5000 },
-      });
+      }
+    );
   }
 };
-
-
-
-
