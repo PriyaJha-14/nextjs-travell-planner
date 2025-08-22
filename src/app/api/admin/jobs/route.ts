@@ -1,7 +1,7 @@
 // src/app/api/admin/jobs/route.ts
 import { NextResponse } from "next/server";
 import { Queue } from "bullmq";
-import { connection } from "@/lib/redis.server";
+import { connection } from "@/lib/redis";
 
 // This queue will only be created on the server
 const importQueue = new Queue("jobsQueue", {

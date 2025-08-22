@@ -30,6 +30,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib";
 import Redis from "ioredis";
+import { Queue } from "bullmq";
+import { connection } from "@/lib/redis";
+
 
 const redis = new Redis(); // connect to Redis
 
