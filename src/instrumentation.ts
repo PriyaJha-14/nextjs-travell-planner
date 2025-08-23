@@ -1,6 +1,6 @@
 // instrumentation.ts
 
-import { startLocationScraping } from "./scraping";
+import { startLocationScraping, startPackageScraping } from "./scraping";
 import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
 
@@ -92,9 +92,21 @@ export const register = async () => {
               }
             }
           } else if (job.data.jobType.type === "package") {
-            console.log("📦 Handling package job:", job.data.url);
+            
+            const alreadyScrapped = await prisma.trips.findUnique({
+              where: { id: job.data.packageDetails.id },
+            });
+            if(!alreadyScrapped) {
+              const pkg = await startPackageScraping(page,job.data.packageDetails);
+              console.log(pkg);
+              // await prisma.trips.create({data:pkg});
+              //  await prisma.jobs.update({
+              //   where: {id: job.data.id},
+              //   data:{isComplete:true, status: "complete" },
+              //  });
+            }
 
-            // TODO: implement package scraper
+            
           } else {
             console.warn("⚠️ Unknown job type:", job.data.jobType);
           }
