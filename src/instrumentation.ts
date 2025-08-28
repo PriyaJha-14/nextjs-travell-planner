@@ -92,6 +92,7 @@ export const register = async () => {
               }
             }
           } else if (job.data.jobType.type === "package") {
+            console.log("in package");
             
             const alreadyScrapped = await prisma.trips.findUnique({
               where: { id: job.data.packageDetails.id },
