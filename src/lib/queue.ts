@@ -60,7 +60,12 @@ export const JOBS_QUEUE_NAME = "jobsQueue";
 
 export const jobsQueue = new Queue(JOBS_QUEUE_NAME, {
   connection,
-  defaultJobOptions: { removeOnComplete: 1000, removeOnFail: 5000 },
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 },
+    removeOnComplete: 1000,
+    removeOnFail: 5000,
+  },
 });
 // export const jobsQueue = new Queue("jobsQueue", {
 //   connection,

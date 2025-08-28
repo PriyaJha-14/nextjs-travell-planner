@@ -29,12 +29,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib";
-import Redis from "ioredis";
-import { Queue } from "bullmq";
-import { connection } from "@/lib/redis";
-
-
-const redis = new Redis(); // connect to Redis
+import { jobsQueue } from "@/lib/queue";
 
 export async function POST(request: Request) {
   console.log("📩 Received POST /api/admin/create-job");
@@ -47,12 +42,9 @@ export async function POST(request: Request) {
     const response = await prisma.jobs.create({ data: { url, jobType } });
     console.log("✅ Job saved in DB with id:", response.id);
 
-    // Push to Redis queue
-    await redis.rpush(
-      "scrape-jobs",
-      JSON.stringify({ url, jobType, id: response.id })
-    );
-    console.log("📌 Job pushed into Redis queue");
+    // Add job to BullMQ queue
+    await jobsQueue.add("new-location", { url, jobType, id: response.id });
+    console.log("📌 Job pushed into BullMQ queue");
 
     return NextResponse.json({ jobCreated: true }, { status: 201 });
   } catch (error: any) {
@@ -63,4 +55,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
