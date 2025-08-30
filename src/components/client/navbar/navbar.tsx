@@ -58,24 +58,20 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
       )}
       <div className="z-10 w-full flex items-center">
         <NavbarBrand>
-          <div
-            className="cursor-pointer flex items-center"
-            onClick={() => router.push("/")}
-          >
+          <div className="cursor-pointer flex items-center" onClick={() => router.push("/")}>
             <Image src="/logo.png" alt="logo" height={80} width={80} />
             <span className="text-xl uppercase font-medium italic">
               <span className={ArchitectsDaughter.className}>SMARTSCRAPE</span>
             </span>
           </div>
         </NavbarBrand>
+
         <NavbarContent className="hidden sm:flex gap-4" justify="center">
           <NavbarItem isActive>
             <Link
               href="/"
               aria-current="page"
-              className={`${
-                pathname === "/" ? "text-danger-500" : "text-white"
-              }`}
+              className={`${pathname === "/" ? "text-danger-500" : "text-white"}`}
             >
               Tours
             </Link>
@@ -83,9 +79,7 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
           <NavbarItem>
             <Link
               href="/search-flights"
-              className={`${
-                pathname.includes("flights") ? "text-danger-500" : "text-white"
-              }`}
+              className={`${pathname.includes("flights") ? "text-danger-500" : "text-white"}`}
             >
               Flights
             </Link>
@@ -93,14 +87,13 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
           <NavbarItem>
             <Link
               href="/search-hotels"
-              className={`${
-                pathname.includes("hotels") ? "text-danger-500" : "text-white"
-              }`}
+              className={`${pathname.includes("hotels") ? "text-danger-500" : "text-white"}`}
             >
               Hotels
             </Link>
           </NavbarItem>
         </NavbarContent>
+
         <NavbarContent justify="end">
           {!userInfo && (
             <>
@@ -116,7 +109,6 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
               </NavbarItem>
               <NavbarItem>
                 <Button
-                  as={Button}
                   color="danger"
                   onPress={onOpen}
                   variant="flat"
@@ -139,7 +131,6 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
                       base: "bg-gradient-to-br from-[#ff578f] to-[#945bff]",
                       icon: "text-black/80",
                     }}
-                    // name={userInfo.firstName}
                     size="md"
                   />
                 </DropdownTrigger>

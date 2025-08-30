@@ -1,18 +1,24 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/client/navbar/navbar";
 import { Footer } from "@/components/client/footer";
-import { Navbar } from "@/components/client/navbar";
 
 const PageLayout = ({ children }: { children: React.ReactNode }) => {
-    return (
-        <div className="relative flex flex-col" id="app-container">
-            <main className="flex flex-col relative">
-                <Navbar />
-                <section className="h-full flex-1">{children}</section>
-                <Footer />
-            </main>
-        </div>
-    );
-};
+  // Dummy open handler, replace with your modal open logic
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleOpen = () => setModalOpen(true);
 
+  return (
+    <div className="relative flex flex-col min-h-screen" id="app-container">
+      <main className="flex flex-col relative flex-grow">
+        <Navbar onOpen={handleOpen} />
+        <section className="h-full flex-1">{children}</section>
+        <Footer />
+      </main>
+      {/* Render your modal here if modalOpen is true */}
+    </div>
+  );
+};
 
 export default PageLayout;
