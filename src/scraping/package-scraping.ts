@@ -6,6 +6,7 @@ import {
   DetailedIntinearyType,
   PackageIteniaryType,
 } from "@/types/trips";
+
 interface PackageInfo {
   id: string | null;
   name: string;
@@ -13,7 +14,9 @@ interface PackageInfo {
   days: number;
   inclusions: string[];
   price: number;
+  detailUrl?: string; // URL to package details page
 }
+
 interface PackageDetailsType {
   description: string;
   images: string[];
@@ -23,6 +26,37 @@ interface PackageDetailsType {
   destinationDetails: DestinationDetailsType[];
   packageIteniary: PackageIteniaryType[];
 }
+
+/**
+ * Scrapes all packages on the listing page returning array of basic info + detail page URL
+ */
+export const scrapeAllPackagesOnPage = async (page: Page): Promise<PackageInfo[]> => {
+  await page.waitForSelector(".thumbnail-card"); // Adjust selector to actual package card class
+
+  const packages = await page.$$eval(".thumbnail-card", (cards) =>
+    cards.map((card) => {
+      const getText = (selector: string) => card.querySelector(selector)?.textContent?.trim() || "";
+      const getAttr = (selector: string, attr: string) => card.querySelector(selector)?.getAttribute(attr) || "";
+
+      return {
+        id: getAttr("[data-mppid]", "data-mppid"),
+        name: getText(".holiday-packages-heading") || getText(".package-name"),
+        nights: parseInt(getText(".nights") || "0", 10),
+        days: parseInt(getText(".days") || "0", 10),
+        price: parseInt(getText(".actual-price")?.replace(/[^\d]/g, "") || "0", 10),
+        inclusions: Array.from(card.querySelectorAll(".inclusions li")).map((li) => li.textContent?.trim() || ""),
+        detailUrl: getAttr(".mobile-package-link", "href") || getAttr(".package-link", "href"),
+      };
+    })
+  );
+
+  console.log("[scraper] Found packages:", packages.length);
+  return packages;
+};
+
+/**
+ * Your original detailed scraper extracting detailed info for a single package
+ */
 export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
   const packageDetails = await page.evaluate(() => {
     const packageDetails: PackageDetailsType = {
@@ -33,7 +67,6 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       destinationItinerary: [],
       destinationDetails: [],
       packageIteniary: [],
-
     };
 
     const packageElement = document.querySelector("#main-container");
@@ -52,24 +85,21 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
         ?.replace("/t_holidays_responsivedetailsthumbimg", "")
     ) as string[];
 
-
     const themesSelector = packageElement?.querySelector("#packageThemes");
     packageDetails.themes = Array.from(
       themesSelector?.querySelectorAll("li")
     ).map((li) => li.innerText.trim());
 
-
     const dayElements = packageElement?.querySelectorAll(
       ".itineraryOverlay .subtitle"
     );
 
-    const description: DetailedIntinearyType[] = [];
+    const descriptions: DetailedIntinearyType[] = [];
 
     dayElements?.forEach((dayElement) => {
       const title = dayElement.textContent!.trim();
       const value = [];
 
-      // Get the next sibling elements until the next day element
       let nextElement = dayElement.nextElementSibling;
       while (nextElement && !nextElement.classList.contains("subtitle")) {
         const textContent = nextElement.textContent!.trim();
@@ -79,12 +109,9 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
         nextElement = nextElement.nextElementSibling;
       }
 
-      // Push the title and value into the result array
       descriptions.push({ title, value });
     });
-    console.log({ packageDetails });
     packageDetails.detailedIntineary = descriptions;
-
 
     const destinationItinerary: { place: string; totalNights: number }[] = [];
     const destinationItinerarySelector =
@@ -110,11 +137,8 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
 
     packageDetails.destinationItinerary = destinationItinerary;
 
-
-
     const cities: { name: string; description: string; image: string }[] = [];
 
-    // Click on "Read More" for the first city
     const readMoreButton = document.getElementById("readMore");
     if (readMoreButton) {
       readMoreButton.click();
@@ -122,10 +146,8 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
 
     const cityElements = document.querySelectorAll(".tabbing a");
     cityElements.forEach((cityElement) => {
-      // Click on the city tab to load its description
       cityElement.click();
 
-      // Click on "Read More" if available
       const readMoreButtonCity = document.getElementById("readMore");
       if (readMoreButtonCity) {
         readMoreButtonCity.click();
@@ -135,9 +157,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       const cityDescription = document
         .getElementById("aboutDestPara")
         ?.textContent!.trim();
-      const cityImage = document
-        .querySelector(".info-block img")!
-        .getAttribute("src");
+      const cityImage = document.querySelector(".info-block img")!.getAttribute("src");
 
       cities.push({
         name: cityName,
@@ -147,7 +167,6 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
     });
 
     packageDetails.destinationDetails = cities;
-
 
     const dataExtracted: PackageIteniaryType[] = [];
     const timeline = document.querySelector(".time-line .right-column");
@@ -172,19 +191,16 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
           activityType: string;
           activityDescription: string;
         }[] = [];
-        // Check if any activity elements exist
         if (activityElements.length > 0) {
-          // Loop through each activity element
           activityElements.forEach((activityElement, index) => {
-            // Extract activity type
             const activityTypeElement =
               activityElement.querySelector(".content.left.ico");
             const activityType = activityTypeElement
               ? activityTypeElement
-                ?.textContent!.trim()
-                .split(" ")[0]
-                .split(" ")[0]
-                .split("\n")[0]
+                  ?.textContent!.trim()
+                  .split(" ")[0]
+                  .split(" ")[0]
+                  .split("\n")[0]
               : `Activity ${index + 1}`;
 
             let activityDescription = null;
@@ -192,28 +208,21 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
             if (activityType === "MEAL" || activityType === "SIGHTSEEING") {
               const listHolder = activityElement.querySelector(".list-holder");
 
-              // Check if the list-holder element exists
               if (listHolder) {
-                // Extract li elements
                 const liElements = listHolder.querySelectorAll("li.ng-scope");
 
-                // Check if any li elements exist
                 if (liElements.length > 0) {
-                  // Create an array to store scraped data
                   const scrapedData: { index: number; text: string }[] = [];
 
-                  // Loop through each li element and extract text content
                   liElements.forEach((liElement, index) => {
                     const liText = liElement?.textContent!.trim();
                     scrapedData.push({ index: index + 1, text: liText });
                   });
 
-                  // Log the scraped data
                   activityDescription = scrapedData;
                 }
               }
             } else if (activityType === "HOTEL") {
-              // Extract activity description
               const activityDescriptionElement = activityElement.querySelector(
                 ".content.right .name a"
               );
@@ -221,16 +230,13 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
                 ? activityDescriptionElement?.textContent!.trim()
                 : null;
             } else if (activityType === "FLIGHT") {
-              const places =
-                activityElement.querySelectorAll(".place span.full");
-
+              const places = activityElement.querySelectorAll(".place span.full");
               const scrappedData: string[] = [];
               places.forEach((place) => {
                 scrappedData.push(place?.textContent!.trim());
               });
               activityDescription = scrappedData;
             }
-            // Log the results
 
             activities.push({ activityType, activityDescription });
           });
@@ -246,11 +252,35 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
 
     packageDetails.packageIteniary = dataExtracted;
 
-
-
     return packageDetails;
   });
 
   const details = { ...pkg, ...packageDetails };
   return details;
+};
+
+/**
+ * New function that scrapes all packages on listing page
+ * and fetches detailed info for each by navigating to detailUrl
+ */
+export const scrapePackagesWithDetails = async (page: Page) => {
+  // 1. Scrape all packages from listing page
+  const packages = await scrapeAllPackagesOnPage(page);
+
+  const detailedPackages = [];
+
+  // 2. For each package, navigate to details page and scrape full info
+  for (const pkg of packages) {
+    if (pkg.detailUrl) {
+      const detailUrl = new URL(pkg.detailUrl, page.url()).href;
+      await page.goto(detailUrl, { waitUntil: "networkidle2" });
+      const details = await startPackageScraping(page, pkg);
+      detailedPackages.push(details);
+
+      // Optional delay between page visits
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+
+  return detailedPackages;
 };

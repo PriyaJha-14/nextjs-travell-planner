@@ -4,6 +4,7 @@
 import { Page } from "puppeteer-core";
 
 interface PackageInfo {
+  detailUrl: any;
   id: string | null;
   name: string;
   nights: number;

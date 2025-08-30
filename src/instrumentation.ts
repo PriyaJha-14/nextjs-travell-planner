@@ -49,7 +49,7 @@ export const register = async () => {
 
           try {
             await page.goto(job.data.url, {
-              timeout: 60000,
+              timeout: 10000000,
               waitUntil: "networkidle2",
             });
             console.log("🌍 5. Navigated to:", job.data.url);
@@ -61,7 +61,7 @@ export const register = async () => {
           // 2. Handle job types
           if (job.data.jobType.type === "location") {
             console.log("📌 6. Starting location scrape...");
-            await page.waitForSelector(".packages-container", { timeout: 30000 });
+            await page.waitForSelector(".packages-container", { timeout: 6000000 });
             const packages = await startLocationScraping(page);
             console.log(`✅ 7. Scraped ${packages.length} packages from ${job.data.url}`);
             if (packages.length > 0) {
@@ -115,8 +115,8 @@ export const register = async () => {
       {
         connection,
         concurrency: 10,
-        removeOnComplete: { count: 1000 },
-        removeOnFail: { count: 5000 },
+        removeOnComplete: { count: 500000 },
+        removeOnFail: { count: 100000 },
       }
     );
   }
