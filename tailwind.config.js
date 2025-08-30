@@ -3,7 +3,7 @@ module.exports = {
   content: [
     "./src/app/**/*.{ts,tsx,js,jsx}",
     "./src/components/**/*.{ts,tsx,js,jsx}",
-    "./node_modules/@heroui/react/**/*.{js,ts,jsx,tsx}", // Include heroui paths if needed
+    "./node_modules/@heroui/react/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {},

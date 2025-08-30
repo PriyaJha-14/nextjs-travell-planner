@@ -64,7 +64,7 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
           >
             <Image src="/logo.png" alt="logo" height={80} width={80} />
             <span className="text-xl uppercase font-medium italic">
-              <span className={ArchitectsDaughter.className}>ARKLYTE</span>
+              <span className={ArchitectsDaughter.className}>SMARTSCRAPE</span>
             </span>
           </div>
         </NavbarBrand>

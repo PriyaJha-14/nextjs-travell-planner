@@ -18,7 +18,7 @@
     "framer-motion": "^12.23.3",
     "ioredis": "^5.7.0",
     "jose": "^6.0.12",
-    "next": "15.3.5",
+    "next": "^15.5.2",
     "prisma": "^6.12.0",
     "puppeteer-core": "^24.17.0",
     "puppeteer-extra": "^3.3.6",
