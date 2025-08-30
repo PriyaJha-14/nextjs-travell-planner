@@ -1,122 +1,130 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardFooter, Listbox, ListboxItem } from "@heroui/react";
-import { CardBody } from "@heroui/react";
-import { Tabs, Tab, Input } from "@heroui/react";
+import { Button, Card, CardFooter, Listbox, ListboxItem, CardBody, Tabs, Tab, Input } from "@heroui/react";
 import axios from "axios";
-// Correct import to ADMIN_API_ROUTES
 import { ADMIN_API_ROUTES } from "@/utils";
-import { apiClient } from "@/lib"; // This is where the problematic import was coming from
 import { ScrapingQueue } from "@/components/admin/scraping-queue";
 import CurrentlyScrapingTable from "./components/currently-scraping-table/currently-scraping-table";
-
 
 interface City {
   name: string;
   geonameId: number;
 }
 
-
 const ScrapeData = () => {
   const [cities, setCities] = useState<City[]>([]);
-  
-  const [selectedCityId, setSelectedCityId] = useState<undefined | number>(
-    undefined
-  );
-  
-  const [selectedCityName, setSelectedCityName] = useState<undefined | string>(
-    undefined
-  );
-const [jobs, setJobs] = useState([])
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState<undefined | number>(undefined);
+  const [selectedCityName, setSelectedCityName] = useState<undefined | string>(undefined);
+  const [jobs, setJobs] = useState<any[]>([]);
+
   const searchCities = async (searchString: string) => {
-    const response = await axios.get(
-      `https://secure.geonames.org/searchJSON?q=${searchString}&maxRows=5&username=priya&style=SHORT`
-    );
-    const parsed = response.data?.geonames;
-    setCities(parsed ?? []);
+    setSearchValue(searchString);
+    if (!searchString) {
+      setCities([]);
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(searchString)}&maxRows=5&username=priya&style=SHORT`
+      );
+      setCities(response.data?.geonames || []);
+    } catch (e) {
+      setCities([]);
+    }
   };
-  const startScraping = async () =>{
-    // Use ADMIN_API_ROUTES here
-    await axios.post(ADMIN_API_ROUTES.CREATE_JOB,{
+
+  const startScraping = async () => {
+    if (!selectedCityName) return;
+    await axios.post(ADMIN_API_ROUTES.CREATE_JOB, {
       url: `https://packages.yatra.com/holidays/intl/search.htm?destination=${selectedCityName}`,
-      url1: `https://www.makemytrip.com/`,
-      url2:`https://holidayz.makemytrip.com/holidays/india/search?dest=${selectedCityName}`,
-      // jobType: { type: "location"},
       jobType: { type: "location" },
     });
   };
-  
+
   const handleCitySelection = (key: React.Key) => {
-    const selectedCityIdNumber = Number(key);
-    setSelectedCityId(selectedCityIdNumber);
-
-    
-    const selectedCity = cities.find(
-      (city) => city.geonameId === selectedCityIdNumber
-    );
-
-    
-    if (selectedCity) {
-      setSelectedCityName(selectedCity.name);
-    }
+    const cityId = Number(key);
+    setSelectedCityId(cityId);
+    const city = cities.find((city) => city.geonameId === cityId);
+    if (city) setSelectedCityName(city.name);
   };
+
   useEffect(() => {
     const getData = async () => {
-      // Use ADMIN_API_ROUTES here
       const data = await axios.get(ADMIN_API_ROUTES.JOB_DETAILS);
       setJobs(data.data.jobs);
     };
-    const interval = setInterval(() => getData(), 3000);
-    return () => {
-      clearInterval(interval);
-    };
+    const interval = setInterval(getData, 3000);
+    getData(); // initial load
+    return () => clearInterval(interval);
   }, []);
-  
+
   return (
-    <section className="m-10 grid grid-cols-3 gap-5">
-      <Card className="col-span-2">
+    <section className="m-10 bg-gray-50 dark:bg-gray-900 rounded-xl p-6 grid grid-cols-3 gap-6">
+      <Card className="col-span-2 bg-white dark:bg-gray-800 shadow-lg rounded-xl flex flex-col">
         <CardBody>
           <Tabs>
             <Tab key="location" title="Location">
-              <Input
-                type="text"
-                label="Search for a location"
-                onChange={(e) => searchCities(e.target.value)}
-              />
-              <div className="w-full min-h-[200px] max-w-[260px] border-small px-1 py-2 rounded-small border-default-200 dark:border-default-100 mt-5">
-                {/* Use the new handler for onAction */}
-                <Listbox onAction={handleCitySelection}>
-                  {cities.map((city) => (
-                    <ListboxItem
-                      key={city.geonameId}
-                      color="primary"
-                      className="text-primary-500">
-                      {city.name}
-                    </ListboxItem>
-                  ))}
-                </Listbox>
+              <div className="mb-6">
+                {/* Use placeholder instead of label to avoid overlap */}
+                <Input
+                  value={searchValue}
+                  variant="faded"
+                  placeholder="Search for a location"
+                  onValueChange={searchCities}
+                  className="mb-2 bg-blue-100 text-black placeholder:text-blue-900"
+                  isClearable
+                  fullWidth
+                  aria-label="Search for a location"
+                />
+                <div className="w-full min-h-[120px] max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 mt-5 p-4 bg-white dark:bg-gray-800 shadow-md overflow-y-auto">
+                  <Listbox
+                    aria-label="City results"
+                    selectedKeys={selectedCityId ? [selectedCityId] : []}
+                    onAction={handleCitySelection}
+                  >
+                    {cities.map((city) => (
+                      <ListboxItem
+                        key={city.geonameId}
+                        color="primary"
+                        className="text-primary-600 hover:underline cursor-pointer"
+                      >
+                        {city.name}
+                      </ListboxItem>
+                    ))}
+                  </Listbox>
+                </div>
               </div>
             </Tab>
           </Tabs>
         </CardBody>
         <CardFooter className="flex flex-col gap-5">
-          <div>
-            {/* Display the selected city name */}
-            {selectedCityName && (
-              <h1 className="text-xl">Scrape data for {selectedCityName}</h1>
-            )}
-          </div>
-          <Button size ="lg" className="w-full" color="primary" onClick={startScraping}> Scrape</Button>
+          {selectedCityName && (
+            <h1 className="text-xl text-center">Scrape data for {selectedCityName}</h1>
+          )}
+          <Button
+            size="lg"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+            onClick={startScraping}
+            isDisabled={!selectedCityName}
+          >
+            Scrape
+          </Button>
         </CardFooter>
       </Card>
-      <ScrapingQueue />
-      <div className="col-span-3">
+
+      <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col items-center justify-center">
+        <h2 className="text-lg font-semibold mb-4">Current Queue</h2>
+        <div className="h-32 w-32 rounded-full border-8 border-orange-400 flex items-center justify-center">
+          <span className="text-4xl font-bold text-orange-600">{jobs.length}</span>
+        </div>
+      </Card>
+
+      <div className="col-span-3 mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
         <CurrentlyScrapingTable jobs={jobs} />
       </div>
-
     </section>
   );
 };
-
 
 export default ScrapeData;
