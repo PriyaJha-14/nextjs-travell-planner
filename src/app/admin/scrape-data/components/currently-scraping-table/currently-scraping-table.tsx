@@ -1,7 +1,5 @@
 "use client";
-import type { SVGProps } from "react";
 import type { Selection, ChipProps, SortDescriptor } from "@heroui/react";
-
 import React, { useEffect, useState } from "react";
 import {
   Table,
@@ -17,7 +15,6 @@ import {
   DropdownMenu,
   DropdownItem,
   Chip,
-  User,
   Pagination,
   Link,
 } from "@heroui/react";
@@ -40,28 +37,26 @@ const columns = [
 
 const statusOptions = [
   { name: "Active", uid: "active" },
-  { name: "Failed", uid: "danger" },
-  { name: "Complete", uid: "success" },
+  { name: "Failed", uid: "failed" },
+  { name: "Complete", uid: "complete" },
 ];
 
 interface JobType {
   id: string;
   url: string;
   createdAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   jobType: any;
   status: "active" | "failed" | "complete";
 }
 
 export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] }) {
-  // All hooks must be at the top level of the function
   const [isMounted, setIsMounted] = useState(false);
   const [filterValue, setFilterValue] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [statusFilter, setStatusFilter] = useState<Selection>("all");
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: "age",
+    column: "createdAt",
     direction: "ascending",
   });
   const [page, setPage] = useState(1);
@@ -70,41 +65,39 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
   const headerColumns = columns;
 
   const filteredItems = React.useMemo(() => {
-    let filteredUsers = jobs;
+    let filtered = jobs;
 
     if (hasSearchFilter) {
-      filteredUsers = filteredUsers.filter((user) =>
-        user.url.toLowerCase().includes(filterValue.toLowerCase())
-      );
-    }
-    if (
-      statusFilter !== "all" &&
-      Array.from(statusFilter).length !== statusOptions.length
-    ) {
-      filteredUsers = filteredUsers.filter((user) =>
-        Array.from(statusFilter).includes(user.status)
+      filtered = filtered.filter((job) =>
+        job.url.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
-    return filteredUsers;
-  }, [jobs, hasSearchFilter, statusFilter, filterValue]);
+    if (
+      statusFilter !== "all" &&
+      statusFilter instanceof Set &&
+      statusFilter.size > 0
+    ) {
+      filtered = filtered.filter((job) => statusFilter.has(job.status));
+    }
+
+    return filtered;
+  }, [jobs, hasSearchFilter, filterValue, statusFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
 
   const renderCell = React.useCallback(
-    (user: JobType, columnKey: React.Key) => {
-      const cellValue = user[columnKey as keyof JobType];
+    (job: JobType, columnKey: React.Key) => {
+      const cellValue = job[columnKey as keyof JobType];
 
       function formatDateAndTime(inputDate: string) {
         const date = new Date(inputDate);
-
         const options = {
           weekday: "long",
           month: "long",
@@ -114,13 +107,9 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
           second: "numeric",
           timeZoneName: "short",
         } as Intl.DateTimeFormatOptions;
-
-        const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
-          date
-        );
-
-        return formattedDate;
+        return new Intl.DateTimeFormat("en-US", options).format(date);
       }
+
       switch (columnKey) {
         case "url":
           return (
@@ -129,16 +118,16 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
             </Link>
           );
         case "jobType":
-          // The change is here: check if cellValue is an object before accessing 'type'
-          const jobTypeValue = typeof cellValue === 'object' && cellValue !== null ? cellValue.type : cellValue;
-          return <span className="text-black">{jobTypeValue}</span>;
+          const jobTypeValue =
+            typeof cellValue === "object" && cellValue !== null ? cellValue.type : cellValue;
+          return <span>{jobTypeValue}</span>;
         case "createdAt":
-          return <span className="text-black">{formatDateAndTime(cellValue)}</span>;
+          return <span>{formatDateAndTime(cellValue)}</span>;
         case "status":
           return (
             <Chip
               className="capitalize"
-              color={statusColorMap[user.status]}
+              color={statusColorMap[job.status]}
               size="sm"
               variant="flat"
             >
@@ -164,22 +153,22 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
     }
   }, [page]);
 
-  const onRowsPerPageChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setRowsPerPage(Number(e.target.value));
-      setPage(1);
+  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
+
+  const onSearchChange = React.useCallback(
+    (value?: string) => {
+      if (value) {
+        setFilterValue(value);
+        setPage(1);
+      } else {
+        setFilterValue("");
+      }
     },
     []
   );
-
-  const onSearchChange = React.useCallback((value?: string) => {
-    if (value) {
-      setFilterValue(value);
-      setPage(1);
-    } else {
-      setFilterValue("");
-    }
-  }, []);
 
   const onClear = React.useCallback(() => {
     setFilterValue("");
@@ -188,70 +177,46 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
 
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between gap-3 items-end">
-          <Input
-            isClearable
-            className="w-full sm:max-w-[44%]"
-            placeholder="Search by name..."
-            startContent={<FaSearch />}
-            value={filterValue}
-            onClear={() => onClear()}
-            onValueChange={onSearchChange}
-          />
-          <div className="flex gap-3">
-            <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button
-                  endContent={<FaChevronDown className="text-small" />}
-                  variant="flat"
-                >
-                  Status
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label="Table Columns"
-                closeOnSelect={false}
-                selectedKeys={statusFilter}
-                selectionMode="multiple"
-                onSelectionChange={setStatusFilter}
+      <div className="flex flex-wrap justify-between gap-3 items-end">
+        <Input
+          isClearable
+          className="flex-grow min-w-[200px] max-w-[44%]"
+          placeholder="Search by name..."
+          startContent={<FaSearch />}
+          value={filterValue}
+          onClear={() => onClear()}
+          onValueChange={onSearchChange}
+        />
+        <div className="flex gap-3 z-50 relative">
+          <Dropdown>
+            <DropdownTrigger className="hidden sm:flex">
+              <Button
+                endContent={<FaChevronDown className="text-small" />}
+                variant="flat"
               >
-                {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {status.name}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">
-            Total {jobs.length} jobs
-          </span>
-          <label className="flex items-center text-default-400 text-small">
-            Rows per page:
-            <select
-              className="bg-transparent outline-none text-default-400 text-small"
-              onChange={onRowsPerPageChange}
+                Status
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              disallowEmptySelection
+              aria-label="Status filter"
+              closeOnSelect={false}
+              selectedKeys={statusFilter}
+              selectionMode="multiple"
+              onSelectionChange={setStatusFilter}
+              className="z-50"
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-            </select>
-          </label>
+              {statusOptions.map((status) => (
+                <DropdownItem key={status.uid} className="capitalize">
+                  {status.name}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
         </div>
       </div>
     );
-  }, [
-    filterValue,
-    onSearchChange,
-    statusFilter,
-    jobs.length,
-    onRowsPerPageChange,
-    onClear,
-  ]);
+  }, [filterValue, onSearchChange, statusFilter, onClear]);
 
   const bottomContent = React.useMemo(() => {
     return (
@@ -259,7 +224,7 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
         <span className="w-[30%] text-small text-default-400">
           {selectedKeys === "all"
             ? "All items selected"
-            : `${selectedKeys.size} of ${filteredItems.length} selected`}
+            : `${selectedKeys instanceof Set ? selectedKeys.size : 0} of ${filteredItems.length} selected`}
         </span>
         <Pagination
           isCompact
@@ -272,7 +237,7 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button
-            isDisabled={pages === 1}
+            isDisabled={page === 1}
             size="sm"
             variant="flat"
             onPress={onPreviousPage}
@@ -280,7 +245,7 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
             Previous
           </Button>
           <Button
-            isDisabled={pages === 1}
+            isDisabled={page === pages || pages === 0}
             size="sm"
             variant="flat"
             onPress={onNextPage}
@@ -290,61 +255,52 @@ export default function CurrentlyScrapingTable({ jobs = [] }: { jobs: JobType[] 
         </div>
       </div>
     );
-  }, [
-    selectedKeys,
-    filteredItems.length,
-    page,
-    pages,
-    onPreviousPage,
-    onNextPage,
-  ]);
+  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
 
-  // useEffect should be at the top
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Conditionally render after all hooks are called
   if (!isMounted) {
     return null;
   }
 
   return (
-    <Table
-      aria-label="Example table with custom cells, pagination and sorting"
-      isHeaderSticky
-      bottomContent={bottomContent}
-      bottomContentPlacement="outside"
-      classNames={{
-        wrapper: "max-h-[382px]",
-      }}
-      selectedKeys={selectedKeys}
-      selectionMode="multiple"
-      sortDescriptor={sortDescriptor}
-      topContent={topContent}
-      topContentPlacement="outside"
-      onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}
-    >
-      <TableHeader columns={headerColumns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            align={column.uid === "actions" ? "center" : "start"}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={"No jobs found"} items={items}>
-        {(item) => (
-          <TableRow key={item.id}>
-            {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey)}</TableCell>
-            )}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <div className="relative z-50">
+      <Table
+        aria-label="Example table with custom cells, pagination and sorting"
+        isHeaderSticky
+        bottomContent={bottomContent}
+        bottomContentPlacement="outside"
+        classNames={{
+          wrapper: "max-h-[382px] relative z-50",
+        }}
+        selectedKeys={selectedKeys}
+        selectionMode="multiple"
+        sortDescriptor={sortDescriptor}
+        topContent={topContent}
+        topContentPlacement="outside"
+        onSelectionChange={setSelectedKeys}
+        onSortChange={setSortDescriptor}
+      >
+        <TableHeader columns={headerColumns}>
+          {(column) => (
+            <TableColumn
+              key={column.uid}
+              align={column.uid === "actions" ? "center" : "start"}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody emptyContent={"No jobs found"} items={items}>
+          {(item) => (
+            <TableRow key={item.id}>
+              {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
