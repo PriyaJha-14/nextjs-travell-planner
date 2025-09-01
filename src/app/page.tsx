@@ -1,11 +1,13 @@
 "use client";
-import { Button } from '@heroui/react';
-// import { color } from 'framer-motion';
-import Image from 'next/image';
+
+
+import { Search } from "@/components/client/home/search";
 
 export default function Home() {
   return (
-    <Button> Hello </Button>
+    <div className="max-w-[100vw] overflow-x-hidden">
+      <Search />
+    </div>
   )
 }
 
