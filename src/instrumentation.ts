@@ -64,8 +64,11 @@ export const register = async () => {
             await page.waitForSelector(".packages-container", { timeout: 6000000 });
             const packages = await startLocationScraping(page);
             console.log(`✅ 7. Scraped ${packages.length} packages from ${job.data.url}`);
+
             if (packages.length > 0) {
-              console.log("📦 Sample package:", packages[0]);
+              packages.forEach((pkg, index) => {
+                console.log(`📦 Package ${index + 1}:`, pkg);
+              });
             }
 
             // mark this job as complete
@@ -115,8 +118,8 @@ export const register = async () => {
       {
         connection,
         concurrency: 10,
-        removeOnComplete: { count: 500000 },
-        removeOnFail: { count: 100000 },
+        removeOnComplete: { count: 5000 },
+        removeOnFail: { count: 1000 },
       }
     );
   }
