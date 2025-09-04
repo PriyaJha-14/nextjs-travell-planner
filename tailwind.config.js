@@ -6,7 +6,11 @@ module.exports = {
     "./node_modules/@heroui/react/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "blue-text-title": "#243757",
+      },
+    },
   },
   plugins: [],
 };
