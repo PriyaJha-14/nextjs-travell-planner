@@ -1,6 +1,12 @@
 "use client";
+
+function removeHtmlTags(description: string): string {
+  if (!description) return "";
+  return description.replace(/<[^>]*>?/gm, "");
+}
+
 import { apiClient } from "@/lib"; 
-import { USER_API_ROUTES, removeHtmlTags } from "@/utils/api-routes";
+import { USER_API_ROUTES } from "@/utils/api-routes";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -13,14 +19,15 @@ import {
 } from "react-icons/fa";
 import { IoPerson, IoPricetag } from "react-icons/io5";
 
-import { Images } from "./components/images";
+import { Image as ImageGallery } from "./components/images";
 import { Button, Input, Tab, Tabs } from "@heroui/react";
 import Image from "next/image";
-import { Iteniary } from "./components/Iteniary";
+import { Iteniary } from "./components/iteniary";
 import { useAppStore } from "@/store";
 import { useRouter } from "next/navigation";
 import { TripType } from "@/types/trips";
 import axios from "axios";
+import Images from "./components/images/image";
 
 const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
   const router = useRouter();
@@ -39,7 +46,6 @@ const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
         console.log({ err });
       }
     };
-
     getData();
   }, [tripId]);
 
@@ -52,7 +58,6 @@ const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
 
   const bookTrip = async () => {
     const isoDate = date.toISOString();
-
     const response = await axios.post(USER_API_ROUTES.CREATE_BOOKING, {
       bookingId: tripData?.id,
       bookingType: "trips",
