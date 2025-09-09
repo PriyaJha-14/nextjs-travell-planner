@@ -39,7 +39,7 @@ const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
     const getData = async () => {
       try {
         const data = await axios.get(
-          `${USER_API_ROUTES.TRIPDATA}?id=${tripId}`
+          `${USER_API_ROUTES.GET_TRIP_DATA}?id=${tripId}`
         );
         setTripData(data.data);
       } catch (err) {

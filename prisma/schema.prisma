@@ -58,3 +58,15 @@ model Trips {
   scrapedOn DateTime @default(now())
 }
 
+model Bookings {
+  id Int @default(autoincrement()) @id
+  createdAt DateTime @default(now())
+  date DateTime
+  bookingType String 
+  bookingTypeId String 
+  userId Int        
+  totalAmount Int  
+  paymentIntent String @unique
+  isCompleted Boolean @default(false)
+  user User @relation(fields: [userId], references: [id])
+}
