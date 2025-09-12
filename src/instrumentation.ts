@@ -62,19 +62,42 @@ export const register = async () => {
           if (job.data.jobType.type === "location") {
             console.log("📌 6. Starting location scrape...");
             await page.waitForSelector(".packages-container", { timeout: 6000000 });
-            const packages = await startLocationScraping(page);
-            console.log(`✅ 7. Scraped ${packages.length} packages from ${job.data.url}`);
+            const rawPackages = await startLocationScraping(page);
+            console.log(`✅ 7. Scraped ${rawPackages.length} packages from ${job.data.url}`);
 
-            if (packages.length > 0) {
-              packages.forEach((pkg, index) => {
-                console.log(`📦 Package ${index + 1}:`, pkg);
-              });
+            // Transform: ensure every field required by Trips model exists and types match!
+            const transformedPackages = rawPackages.map(pkg => ({
+              id: pkg.id || crypto.randomUUID(),
+              name: pkg.name || "",
+              nights: pkg.nights || 0,
+              days: pkg.days || 0,
+              destinationItinerary: pkg.destinationItinerary || [],
+              images: pkg.images || [],
+              inclusions: pkg.inclusions || [],
+              themes: pkg.themes || [],
+              price: pkg.price || 0,
+              destinationDetails: pkg.destinationDetails || [],
+              detailedIntineary: pkg.detailedIntineary || [],
+              description: pkg.description || "",
+              packageIteniary: pkg.packageIteniary || [],
+              scrapedOn: new Date()
+            }));
+
+            // Save trips individually (will ALWAYS work with correct types)
+            for (const trip of transformedPackages) {
+              try {
+                await prisma.trips.create({ data: trip });
+              } catch (e) {
+                // Ignore duplicate errors (unique id)
+                if (!String(e).includes('Unique constraint failed')) {
+                  console.error('❌ Failed to save trip', trip.id, e);
+                }
+              }
             }
 
-            // mark this job as complete
             await prisma.jobs.update({
               where: { id: job.data.id },
-              data: { isComplete: true, status: "complete" },
+              data: { isComplete: true, status: "complete" }
             });
 
             // enqueue new package jobs as before...

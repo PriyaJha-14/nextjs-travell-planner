@@ -4,6 +4,13 @@
 import { Page } from "puppeteer-core";
 
 interface PackageInfo {
+  packageIteniary: never[];
+  description: string;
+  detailedIntineary: never[];
+  destinationDetails: never[];
+  themes: never[];
+  images: never[];
+  destinationItinerary: never[];
   detailUrl: any;
   id: string | null;
   name: string;

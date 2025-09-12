@@ -34,6 +34,7 @@ export interface DetailedIntinearyType {
 }
 
 export interface TripType {
+  status: any;
   id: string;
   name: string;
   nights: number;

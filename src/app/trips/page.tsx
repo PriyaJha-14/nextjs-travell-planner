@@ -19,12 +19,17 @@ const Trips = () => {
       const response = await axios.get(
         `${USER_API_ROUTES.GET_CITY_TRIPS}?city=${searchCity}`
       );
-      setTrips(response.data.trips);
+      // Only set trips with at least 1 image and name
+      setTrips(
+        (response.data.trips || []).filter(
+          (trip: TripType) =>
+            Array.isArray(trip.images) && trip.images.length > 0 && !!trip.name
+        )
+      );
     };
     if (searchCity) getData();
   }, [searchCity]);
 
-  // ✅ Fix removeHtmlTags
   function removeHtmlTags(description: string): string {
     if (!description) return "";
     return description.replace(/<[^>]*>?/gm, "");
@@ -42,23 +47,23 @@ const Trips = () => {
         <FaChevronLeft />
         Go Back
       </Button>
-
+      {trips.length === 0 && (
+        <p className="text-center text-gray-400 mt-10">
+          No trips found for "{searchCity}".
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-5">
         {trips.map((trip) => {
           const tripImage =
-            trip.images && trip.images.length > 0
+            Array.isArray(trip.images) && trip.images.length > 0
               ? trip.images[0]
               : "/default-trip.jpg";
-
-          console.log("🖼️ Trip Image:", tripImage);
-
           return (
             <div
               key={trip.id}
               className="grid grid-cols-9 gap-5 rounded-2xl border border-neutral-300 cursor-pointer"
               onClick={() => router.push(`/trips/${trip.id}`)}
             >
-              {/* ✅ Image */}
               <div className="relative w-full h-48 col-span-3">
                 <Image
                   src={tripImage}
@@ -67,44 +72,38 @@ const Trips = () => {
                   className="rounded-2xl object-cover"
                 />
               </div>
-
-              {/* Trip Details */}
               <div className="col-span-6 pt-5 pr-5 flex flex-col gap-1">
                 <h2 className="text-lg font-medium capitalize">
                   <span className="line-clamp-1">{trip.name}</span>
                 </h2>
-
                 <div>
                   <ul className="flex gap-5 w-full overflow-hidden">
-                    {trip.destinationDetails.map((detail, index) => (
-                      <li key={detail.name}>
-                        <Chip
-                          color={index % 2 === 0 ? "secondary" : "danger"}
-                          variant="flat"
-                        >
-                          {detail.name}
-                        </Chip>
-                      </li>
-                    ))}
+                    {Array.isArray(trip.destinationDetails) &&
+                      trip.destinationDetails.map((detail, index) => (
+                        <li key={detail.name || index}>
+                          <Chip
+                            color={index % 2 === 0 ? "secondary" : "danger"}
+                            variant="flat"
+                          >
+                            {detail.name}
+                          </Chip>
+                        </li>
+                      ))}
                   </ul>
                 </div>
-
                 <div>
                   <p className="line-clamp-1">
                     {removeHtmlTags(trip.description)}
                   </p>
                 </div>
-
                 <div className="flex gap-4">
                   <div>{trip.days} days</div>
                   <div>{trip.nights} nights</div>
                 </div>
-
-                {/* Activities & Price */}
                 <div className="flex justify-between">
                   <span>{trip.id}</span>
                   <span>
-                    <strong>${trip.price}</strong> / person
+                    <strong>₹{trip.price}</strong> / person
                   </span>
                 </div>
               </div>
