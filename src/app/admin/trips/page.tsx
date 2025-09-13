@@ -86,9 +86,8 @@ export default function Trips() {
       }
       switch (columnKey) {
         case "id":
-          return <Link href={`/trip/${cellValue}`} target="_blank">{cellValue as string}</Link>;
+          return <Link href={`/trip/${cellValue}`} target="_blank" className="text-black">{cellValue as string}</Link>;
         case "destinationItinerary":
-          // Guard for missing or non-array data
           if (!Array.isArray(cellValue)) return null;
           return (
             <div className="flex gap-2">
@@ -105,15 +104,23 @@ export default function Trips() {
             </div>
           );
         case "scrapedOn":
-          return typeof cellValue === "string" ? formatDateTime(cellValue) : "-";
+          return (
+            <span className="text-black">
+              {typeof cellValue === "string" ? formatDateTime(cellValue) : "-"}
+            </span>
+          );
         case "price":
-          return `₹${cellValue}`;
+          return <span className="text-black font-bold">₹{cellValue}</span>;
         case "status":
           return trip.status ? (
-            <Chip color={trip.status === "complete" ? "success" : "danger"}>{trip.status}</Chip>
+            <Chip color={trip.status === "complete" ? "success" : "danger"}>
+              <span className="text-black">{trip.status}</span>
+            </Chip>
           ) : "N/A";
+        case "name":
+          return <span className="text-black font-medium">{cellValue}</span>;
         default:
-          return cellValue;
+          return <span className="text-black">{cellValue}</span>;
       }
     },
     []
@@ -133,11 +140,11 @@ export default function Trips() {
         />
       </div>
       <div className="flex justify-between items-center">
-        <span className="text-default-400 text-small">Total {trips.length} trips</span>
-        <label className="flex items-center text-default-400 text-small">
+        <span className="text-black text-small">Total {trips.length} trips</span>
+        <label className="flex items-center text-black text-small">
           Rows per page:
           <select
-            className="bg-transparent outline-none text-default-400 text-small"
+            className="bg-transparent outline-none text-black text-small"
             onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
             <option value="10">10</option>
             <option value="15">15</option>
@@ -150,7 +157,7 @@ export default function Trips() {
 
   const bottomContent = (
     <div className="py-2 px-2 flex justify-between items-center ">
-      <span className="w-[30%] text-small text-default-400">
+      <span className="w-[30%] text-small text-black">
         {selectedKeys === "all"
           ? "All items selected"
           : `${selectedKeys.size} of ${filteredItems.length} selected`}
@@ -193,7 +200,7 @@ export default function Trips() {
           isHeaderSticky
           bottomContent={bottomContent}
           bottomContentPlacement="outside"
-          classNames={{ wrapper: "max-h-[500px] h-[500px]" }}
+          classNames={{ wrapper: "max-h-[500px] h-[500px]", table: "text-black opacity-100" }}
           selectedKeys={selectedKeys}
           selectionMode="multiple"
           sortDescriptor={sortDescriptor}
@@ -203,13 +210,21 @@ export default function Trips() {
           onSortChange={setSortDescriptor}
         >
           <TableHeader columns={columns}>
-            {(column) => <TableColumn key={column.uid} allowsSorting={column.sortable}>{column.name}</TableColumn>}
+            {(column) => (
+              <TableColumn
+                key={column.uid}
+                allowsSorting={column.sortable}
+                className="text-black opacity-100 font-bold"
+              >
+                {column.name}
+              </TableColumn>
+            )}
           </TableHeader>
           <TableBody emptyContent={"No trips found"} items={sortedItems}>
             {(item: TripType) => (
-              <TableRow key={item.id}>
+              <TableRow key={item.id} className="text-black opacity-100">
                 {(columnKey) =>
-                  <TableCell>
+                  <TableCell className="text-black opacity-100 font-normal">
                     {renderCell(item, columnKey) as ReactNode}
                   </TableCell>
                 }

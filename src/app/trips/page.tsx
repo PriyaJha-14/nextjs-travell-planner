@@ -52,7 +52,7 @@ const Trips = () => {
           No trips found for "{searchCity}".
         </p>
       )}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2 gap-5 text-black">
         {trips.map((trip) => {
           const tripImage =
             Array.isArray(trip.images) && trip.images.length > 0
@@ -61,7 +61,7 @@ const Trips = () => {
           return (
             <div
               key={trip.id}
-              className="grid grid-cols-9 gap-5 rounded-2xl border border-neutral-300 cursor-pointer"
+              className="grid grid-cols-9 gap-5 rounded-2xl border border-neutral-300 cursor-pointer bg-white text-black opacity-100"
               onClick={() => router.push(`/trips/${trip.id}`)}
             >
               <div className="relative w-full h-48 col-span-3">
@@ -73,7 +73,7 @@ const Trips = () => {
                 />
               </div>
               <div className="col-span-6 pt-5 pr-5 flex flex-col gap-1">
-                <h2 className="text-lg font-medium capitalize">
+                <h2 className="text-lg font-medium capitalize text-blue-text-title">
                   <span className="line-clamp-1">{trip.name}</span>
                 </h2>
                 <div>
@@ -92,18 +92,16 @@ const Trips = () => {
                   </ul>
                 </div>
                 <div>
-                  <p className="line-clamp-1">
-                    {removeHtmlTags(trip.description)}
-                  </p>
+                  <p className="line-clamp-1">{removeHtmlTags(trip.description)}</p>
                 </div>
                 <div className="flex gap-4">
                   <div>{trip.days} days</div>
                   <div>{trip.nights} nights</div>
                 </div>
                 <div className="flex justify-between">
-                  <span>{trip.id}</span>
-                  <span>
-                    <strong>₹{trip.price}</strong> / person
+                  <span className="text-blue-text-title">{trip.id}</span>
+                  <span className="text-black font-bold">
+                    ₹{trip.price} / person
                   </span>
                 </div>
               </div>
