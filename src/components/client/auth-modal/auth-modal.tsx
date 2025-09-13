@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { USER_API_ROUTES } from "@/utils/api-routes";
 import { apiClient } from "@/lib";
 import { useAppStore } from "@/store";
+import axios from "axios";
 
 const ArchitectsDaughter = Architects_Daughter({
   weight: "400", // if single weight, otherwise you use array like [400, 500, 700],
@@ -40,7 +41,7 @@ const AuthModal = ({
   const [password, setPassword] = useState("");
 
   const handleSignup = async (onClose: () => void) => {
-    const response = await apiClient.post(USER_API_ROUTES.SIGNUP, {
+    const response = await axios.post(USER_API_ROUTES.SIGNUP, {
       firstName: firstName,
       lastName: lastName,
       email: email,
@@ -53,7 +54,7 @@ const AuthModal = ({
   };
 
   const handleLogin = async (onClose: () => void) => {
-    const response = await apiClient.post(USER_API_ROUTES.LOGIN, {
+    const response = await axios.post(USER_API_ROUTES.LOGIN, {
       email,
       password,
     });
