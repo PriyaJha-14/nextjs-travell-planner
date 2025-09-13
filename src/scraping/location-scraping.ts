@@ -35,10 +35,10 @@ export const startLocationScraping = async (
         name: "",
         nights: 0,
         days: 0,
-        // destinationItinerary: "",
+        destinationItinerary: "",
         inclusions: [],
         price: 0,
-        // image: "",
+        image: "",
       };
 
       const nameElement = packageElement.querySelector(

@@ -8,6 +8,9 @@ export const register = async () => {
   console.log("📡 register() triggered, runtime:", process.env.NEXT_RUNTIME);
 
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    // Dynamically import crypto to avoid build errors
+    const { randomUUID } = await import("crypto");
+
     const { Worker } = await import("bullmq");
     const { connection } = await import("@/lib/redis");
     const { jobsQueue } = await import("@/lib/queue");
@@ -55,22 +58,36 @@ export const register = async () => {
             console.log("🌍 5. Navigated to:", job.data.url);
           } catch (navErr) {
             console.error("❌ Navigation failed!", navErr);
-            throw navErr; // propagate so status = fail
+            throw navErr;
           }
 
-          // 2. Handle job types
+          // Handle job types
           if (job.data.jobType.type === "location") {
             console.log("📌 6. Starting location scrape...");
             await page.waitForSelector(".packages-container", { timeout: 6000000 });
             const rawPackages = await startLocationScraping(page);
             console.log(`✅ 7. Scraped ${rawPackages.length} packages from ${job.data.url}`);
 
-            // Transform: ensure every field required by Trips model exists and types match!
-            const transformedPackages = rawPackages.map(pkg => ({
-              id: pkg.id || crypto.randomUUID(),
+            // --- DEBUG: Deep log ALL scraped packages ---
+            console.log("🔎 Raw packages debug output:");
+            console.dir(rawPackages, { depth: null });
+
+            // Filter only packages with valid data
+            const validPackages = rawPackages.filter(pkg => 
+              pkg.id && 
+              pkg.name && 
+              Array.isArray(pkg.images) && 
+              pkg.images.length > 0
+            );
+
+            console.log(`📦 Valid packages to save: ${validPackages.length}`);
+
+            // Transform packages for database
+            const transformedPackages = validPackages.map(pkg => ({
+              id: pkg.id || randomUUID(),
               name: pkg.name || "",
-              nights: pkg.nights || 0,
-              days: pkg.days || 0,
+              nights: pkg.nights || 1,
+              days: pkg.days || 1,
               destinationItinerary: pkg.destinationItinerary || [],
               images: pkg.images || [],
               inclusions: pkg.inclusions || [],
@@ -80,15 +97,16 @@ export const register = async () => {
               detailedIntineary: pkg.detailedIntineary || [],
               description: pkg.description || "",
               packageIteniary: pkg.packageIteniary || [],
-              scrapedOn: new Date()
+              scrapedOn: new Date(),
+              status: "complete"
             }));
 
-            // Save trips individually (will ALWAYS work with correct types)
+            // Save trips individually
             for (const trip of transformedPackages) {
               try {
                 await prisma.trips.create({ data: trip });
+                console.log(`✅ Saved trip: ${trip.name}`);
               } catch (e) {
-                // Ignore duplicate errors (unique id)
                 if (!String(e).includes('Unique constraint failed')) {
                   console.error('❌ Failed to save trip', trip.id, e);
                 }
@@ -100,9 +118,6 @@ export const register = async () => {
               data: { isComplete: true, status: "complete" }
             });
 
-            // enqueue new package jobs as before...
-            // -- omitted for brevity --
-
           } else if (job.data.jobType.type === "package") {
             console.log("📦 6. Starting package scrape...");
             const alreadyScraped = await prisma.trips.findUnique({
@@ -111,7 +126,6 @@ export const register = async () => {
             if (!alreadyScraped) {
               const pkg = await startPackageScraping(page, job.data.packageDetails);
               console.log("✅ 7. Scraped package details:", pkg);
-              // Optionally save to Prisma here...
             }
           } else {
             console.warn("⚠️ Unknown job type:", job.data.jobType);
