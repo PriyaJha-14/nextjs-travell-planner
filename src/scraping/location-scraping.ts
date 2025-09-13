@@ -19,6 +19,7 @@ interface PackageInfo {
 
   inclusions: string[];
   price: number;
+  image: string; // added field for thumbnail image
 }
 
 export const startLocationScraping = async (
@@ -38,7 +39,7 @@ export const startLocationScraping = async (
         destinationItinerary: "",
         inclusions: [],
         price: 0,
-        image: "",
+        image: "", // initialize
       };
 
       const nameElement = packageElement.querySelector(
@@ -64,12 +65,6 @@ export const startLocationScraping = async (
           ?.textContent || 0
       );
 
-      // Extracting destination itinerary
-      // const destinationsElement = packageElement.querySelector(
-      //   ".package-destinations"
-      // );
-      // packageInfo.destinationItinerary =
-      //   destinationsElement?.textContent?.trim() || "";
 
       // Extracting package inclusions
       const inclusionsElement = packageElement.querySelector(
@@ -83,10 +78,14 @@ export const startLocationScraping = async (
       );
       packageInfo.inclusions = inclusionItems;
 
-      // // Extracting package price
+      // Extracting package price
       const priceElement = packageElement.querySelector(".final-price .amount");
       packageInfo.price =
         parseInt(priceElement?.textContent?.replace(/,/g, "")) || 0;
+
+      // ** Extracting thumbnail image **
+      const imageElement = packageElement.querySelector(".package-image") as HTMLImageElement;
+      packageInfo.image = imageElement?.src || "";
 
       packages.push(packageInfo);
     });
