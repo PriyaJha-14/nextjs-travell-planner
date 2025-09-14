@@ -39,14 +39,14 @@ export interface TripType {
   name: string;
   nights: number;
   days: number;
-  destinationItinerary: DestinationItineraryType[];
-  images: string[];
+  // destinationItinerary: DestinationItineraryType[];
+  // images: string[];
   inclusions: string[];
-  themes: string[];
+  // themes: string[];
   price: number;
-  destinationDetails: DestinationDetailsType[];
-  detailedItinerary: DetailedItineraryType[];   // fixed typo
-  description: string;
-  packageItinerary: PackageItineraryType[];     // fixed typo
+  // destinationDetails: DestinationDetailsType[];
+  // detailedItinerary: DetailedItineraryType[];   // fixed typo
+  // description: string;
+  // packageItinerary: PackageItineraryType[];     // fixed typo
   scrapedOn: string;
 }
