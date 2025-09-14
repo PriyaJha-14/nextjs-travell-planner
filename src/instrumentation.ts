@@ -1,3 +1,4 @@
+
 import { startLocationScraping, startPackageScraping } from "./scraping";
 import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
