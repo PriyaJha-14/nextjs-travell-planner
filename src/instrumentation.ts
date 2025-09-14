@@ -1,9 +1,44 @@
-
 import { startLocationScraping, startPackageScraping } from "./scraping";
 import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
+import { v4 as uuidv4 } from 'uuid'; // Import UUID properly
 
 console.log("🚀 instrumentation.ts loaded");
+
+// ✅ City Extraction Function
+function extractCityFromPackageName(packageName: string): string {
+  if (!packageName) return "";
+
+  // Patterns to match common city names in travel package titles
+  const cityPatterns = [
+    // "Beautiful Munnar & Thekkady" -> "Munnar & Thekkady"
+    /(?:Beautiful|Scenic|Experience|Explore|Great|Stunning|Simply|Wickets.*?)\s+([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+With|\s+Journey|\s+Special|\s+Tour)/i,
+    
+    // "Holidays in Australia" -> "Australia"
+    /(?:in|to|from)\s+([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+With)/i,
+    
+    // "Melbourne Special" -> "Melbourne"
+    /([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+Tour|\s+Special)/i
+  ];
+
+  for (const pattern of cityPatterns) {
+    const match = packageName.match(pattern);
+    if (match && match[1]) {
+      let city = match[1].trim();
+      
+      // Clean up common suffixes and prefixes
+      city = city.replace(/\s+(Land Only|Self Drive|Deluxe|Premium|Cricket|Holidays|Tour|Special)$/i, '');
+      
+      // Filter out obvious non-cities
+      const nonCities = ['Land Only', 'Self Drive', 'Deluxe', 'Premium', 'Cricket', 'Holidays', 'Tour', 'Special', 'Journey'];
+      if (!nonCities.some(nonCity => city.toLowerCase() === nonCity.toLowerCase()) && city.length > 0) {
+        return city;
+      }
+    }
+  }
+
+  return "";
+}
 
 export const register = async () => {
   console.log("📡 register() triggered, runtime:", process.env.NEXT_RUNTIME);
@@ -56,41 +91,52 @@ export const register = async () => {
             console.log("🌍 5. Navigated to:", job.data.url);
           } catch (navErr) {
             console.error("❌ Navigation failed!", navErr);
-            throw navErr; // propagate so status = fail
+            throw navErr;
           }
 
-          // 2. Handle job types
+          // Handle job types
           if (job.data.jobType.type === "location") {
             console.log("📌 6. Starting location scrape...");
             await page.waitForSelector(".packages-container", { timeout: 6000000 });
             const rawPackages = await startLocationScraping(page);
             console.log(`✅ 7. Scraped ${rawPackages.length} packages from ${job.data.url}`);
 
-            // Transform: ensure every field required by Trips model exists and types match!
-            const transformedPackages = rawPackages.map(pkg => ({
-              id: pkg.id || crypto.randomUUID(),
-              name: pkg.name || "",
-              nights: pkg.nights || 0,
-              days: pkg.days || 0,
-              destinationItinerary: pkg.destinationItinerary || [],
-              images: pkg.images || [],
-              inclusions: pkg.inclusions || [],
-              themes: pkg.themes || [],
-              price: pkg.price || 0,
-              destinationDetails: pkg.destinationDetails || [],
-              detailedItinerary: pkg.detailedItinerary || [],
-              description: pkg.description || "",
-              packageItinerary: pkg.packageItinerary|| [],
-              scrapedOn: new Date()
-            }));
+            // ✅ Transform packages to match Prisma schema exactly with city extraction
+            const transformedPackages = rawPackages.map(pkg => {
+              // Extract city from package name if not already extracted in scraping
+              const extractedCity = pkg.city || extractCityFromPackageName(pkg.name);
+              
+              return {
+                id: pkg.id || uuidv4(), // Use proper UUID
+                name: pkg.name || "Unnamed Package",
+                city: extractedCity, // ✅ Include extracted city
+                nights: pkg.nights || 0,
+                days: pkg.days || 0,
+                // Convert arrays to JSON strings for database storage
+                destinationItinerary: JSON.stringify(pkg.destinationItinerary || []),
+                images: JSON.stringify(pkg.images || []),
+                inclusions: JSON.stringify(pkg.inclusions || []),
+                themes: JSON.stringify(pkg.themes || []),
+                price: pkg.price || 0,
+                destinationDetails: JSON.stringify(pkg.destinationDetails || []),
+                detailedItinerary: JSON.stringify(pkg.detailedItinerary || []),
+                description: pkg.description || "",
+                packageItinerary: JSON.stringify(pkg.packageItinerary || []),
+                scrapedOn: new Date(),
+                status: "active"
+              };
+            });
 
-            // Save trips individually (will ALWAYS work with correct types)
+            // Save trips individually with error handling
             for (const trip of transformedPackages) {
               try {
                 await prisma.trips.create({ data: trip });
+                console.log(`✅ Saved trip: ${trip.name} (${trip.id}) - City: ${trip.city || 'No city'}`);
               } catch (e) {
-                // Ignore duplicate errors (unique id)
-                if (!String(e).includes('Unique constraint failed')) {
+                // Handle duplicate key errors gracefully
+                if (String(e).includes('Unique constraint failed')) {
+                  console.log(`⚠️ Trip ${trip.id} already exists, skipping`);
+                } else {
                   console.error('❌ Failed to save trip', trip.id, e);
                 }
               }
@@ -101,18 +147,48 @@ export const register = async () => {
               data: { isComplete: true, status: "complete" }
             });
 
-            // enqueue new package jobs as before...
-            // -- omitted for brevity --
-
           } else if (job.data.jobType.type === "package") {
             console.log("📦 6. Starting package scrape...");
             const alreadyScraped = await prisma.trips.findUnique({
               where: { id: job.data.packageDetails.id },
             });
+            
             if (!alreadyScraped) {
               const pkg = await startPackageScraping(page, job.data.packageDetails);
               console.log("✅ 7. Scraped package details:", pkg);
-              // Optionally save to Prisma here...
+              
+              // ✅ Transform and save detailed package data with city extraction
+              const extractedCity = pkg.city || extractCityFromPackageName(pkg.name);
+              
+              const transformedPackage = {
+                id: pkg.id || uuidv4(),
+                name: pkg.name || "Unnamed Package",
+                city: extractedCity, // ✅ Include extracted city
+                nights: pkg.nights || 0,
+                days: pkg.days || 0,
+                destinationItinerary: JSON.stringify(pkg.destinationItinerary || []),
+                images: JSON.stringify(pkg.images || []),
+                inclusions: JSON.stringify(pkg.inclusions || []),
+                themes: JSON.stringify(pkg.themes || []),
+                price: pkg.price || 0,
+                destinationDetails: JSON.stringify(pkg.destinationDetails || []),
+                detailedItinerary: JSON.stringify(pkg.detailedItinerary || []),
+                description: pkg.description || "",
+                packageItinerary: JSON.stringify(pkg.packageItinerary || []),
+                scrapedOn: new Date(),
+                status: "active"
+              };
+
+              try {
+                await prisma.trips.upsert({
+                  where: { id: transformedPackage.id },
+                  create: transformedPackage,
+                  update: transformedPackage
+                });
+                console.log(`✅ Saved detailed package: ${transformedPackage.name} - City: ${transformedPackage.city || 'No city'}`);
+              } catch (e) {
+                console.error('❌ Failed to save detailed package:', e);
+              }
             }
           } else {
             console.warn("⚠️ Unknown job type:", job.data.jobType);

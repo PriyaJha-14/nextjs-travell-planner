@@ -44,20 +44,23 @@ model Jobs {
 model Trips {
   id String @id @unique
   name String
-  nights Int
-  days Int
-  destinationItinerary Json
-  images Json
-  inclusions Json
-  themes Json
-  price Int
-  destinationDetails Json
-  detailedItinerary Json
-  description String
-  packageItinerary Json
+  city String @default("")              // ✅ Add this field
+  nights Int @default(0)
+  days Int @default(0)
+  destinationItinerary Json @default("{}")
+  images Json @default("[]")
+  inclusions Json @default("[]")
+  themes Json @default("[]")
+  price Int @default(0)
+  destinationDetails Json @default("{}")
+  detailedItinerary Json @default("{}")
+  description String @default("")
+  packageItinerary Json @default("{}")
   scrapedOn DateTime @default(now())
-  status String?
+  status String @default("active")
 }
+
+
 
 model Bookings {
   id Int @default(autoincrement()) @id
