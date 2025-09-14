@@ -54,7 +54,7 @@ model Trips {
   destinationDetails Json
   detailedItinerary Json
   description String
-  packageIteniary Json
+  packageItinerary Json
   scrapedOn DateTime @default(now())
   status String?
 }

@@ -4,7 +4,7 @@
 import { Page } from "puppeteer-core";
 
 interface PackageInfo {
-  packageIteniary: never[];
+  packageItinerary: never[];
   description: string;
   detailedItinerary: never[];
   destinationDetails: never[];
@@ -84,7 +84,7 @@ export const startLocationScraping = async (
         parseInt(priceElement?.textContent?.replace(/,/g, "")) || 0;
 
       // ** Extracting thumbnail image **
-      const imageElement = packageElement.querySelector(".package-image") as HTMLImageElement;
+      const imageElement = packageElement.querySelector("img.package-image") as HTMLImageElement;
       packageInfo.image = imageElement?.src || "";
 
       packages.push(packageInfo);

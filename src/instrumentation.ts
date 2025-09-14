@@ -79,7 +79,7 @@ export const register = async () => {
               destinationDetails: pkg.destinationDetails || [],
               detailedItinerary: pkg.detailedItinerary || [],
               description: pkg.description || "",
-              packageIteniary: pkg.packageIteniary || [],
+              packageItinerary: pkg.packageItinerary|| [],
               scrapedOn: new Date()
             }));
 

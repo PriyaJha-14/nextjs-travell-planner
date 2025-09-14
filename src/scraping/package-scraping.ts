@@ -4,7 +4,7 @@ import {
   DestinationDetailsType,
   DestinationItineraryType,
   detailedItineraryType,
-  PackageIteniaryType,
+  packageItineraryType,
 } from "@/types/trips";
 
 interface PackageInfo {
@@ -24,7 +24,7 @@ interface PackageDetailsType {
   detailedItinerary: detailedItineraryType[];
   destinationItinerary: DestinationItineraryType[];
   destinationDetails: DestinationDetailsType[];
-  packageIteniary: PackageIteniaryType[];
+  packageItinerary: packageItineraryType[];
 }
 
 /**
@@ -66,7 +66,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       detailedItinerary: [],
       destinationItinerary: [],
       destinationDetails: [],
-      packageIteniary: [],
+      packageItinerary: [],
     };
 
     const packageElement = document.querySelector("#main-container");
@@ -168,7 +168,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
 
     packageDetails.destinationDetails = cities;
 
-    const dataExtracted: PackageIteniaryType[] = [];
+    const dataExtracted: packageItineraryType[] = [];
     const timeline = document.querySelector(".time-line .right-column");
     const articles = timeline?.querySelectorAll("article");
 
@@ -250,7 +250,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       });
     });
 
-    packageDetails.packageIteniary = dataExtracted;
+    packageDetails.packageItinerary = dataExtracted;
 
     return packageDetails;
   });
