@@ -16,6 +16,7 @@ const Trips = () => {
 
   useEffect(() => {
     const getData = async () => {
+      // Corrected API call to use the city filter
       const response = await axios.get(
         `${USER_API_ROUTES.GET_CITY_TRIPS}?city=${searchCity}`
       );
