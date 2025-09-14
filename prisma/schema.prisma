@@ -52,7 +52,7 @@ model Trips {
   themes Json
   price Int
   destinationDetails Json
-  detailedIntineary Json
+  detailedItinerary Json
   description String
   packageIteniary Json
   scrapedOn DateTime @default(now())

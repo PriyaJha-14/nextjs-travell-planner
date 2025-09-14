@@ -166,7 +166,7 @@ const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
                     <strong className="font-medium">Itinerary</strong>
                   </h3>
                   <div>
-                    <Iteniary data={tripData.detailedIntineary} />
+                    <Iteniary data={tripData.detailedItinerary} />
                   </div>
                 </div>
                 <div className="px-10 py-10 bg-[#f5f5fe] rounded-lg border border-gray-200 gap-3 flex flex-col">

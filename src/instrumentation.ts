@@ -77,7 +77,7 @@ export const register = async () => {
               themes: pkg.themes || [],
               price: pkg.price || 0,
               destinationDetails: pkg.destinationDetails || [],
-              detailedIntineary: pkg.detailedIntineary || [],
+              detailedItinerary: pkg.detailedItinerary || [],
               description: pkg.description || "",
               packageIteniary: pkg.packageIteniary || [],
               scrapedOn: new Date()

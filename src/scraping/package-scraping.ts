@@ -3,7 +3,7 @@ import { Page } from "puppeteer-core";
 import {
   DestinationDetailsType,
   DestinationItineraryType,
-  DetailedIntinearyType,
+  detailedItineraryType,
   PackageIteniaryType,
 } from "@/types/trips";
 
@@ -21,7 +21,7 @@ interface PackageDetailsType {
   description: string;
   images: string[];
   themes: string[];
-  detailedIntineary: DetailedIntinearyType[];
+  detailedItinerary: detailedItineraryType[];
   destinationItinerary: DestinationItineraryType[];
   destinationDetails: DestinationDetailsType[];
   packageIteniary: PackageIteniaryType[];
@@ -63,7 +63,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       description: "",
       images: [],
       themes: [],
-      detailedIntineary: [],
+      detailedItinerary: [],
       destinationItinerary: [],
       destinationDetails: [],
       packageIteniary: [],
@@ -94,7 +94,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
       ".itineraryOverlay .subtitle"
     );
 
-    const descriptions: DetailedIntinearyType[] = [];
+    const descriptions: detailedItineraryType[] = [];
 
     dayElements?.forEach((dayElement) => {
       const title = dayElement.textContent!.trim();
@@ -111,7 +111,7 @@ export const startPackageScraping = async (page: Page, pkg: PackageInfo) => {
 
       descriptions.push({ title, value });
     });
-    packageDetails.detailedIntineary = descriptions;
+    packageDetails.detailedItinerary = descriptions;
 
     const destinationItinerary: { place: string; totalNights: number }[] = [];
     const destinationItinerarySelector =

@@ -3,21 +3,21 @@ export interface DestinationItineraryType {
   totalNights: number;
 }
 
-interface SightseeingDescription {
+export interface SightseeingDescription {
   text: string;
   index: number;
 }
 
-interface Activity {
+export interface Activity {
   activityType: string;
   activityDescription: string | SightseeingDescription[];
 }
 
-interface DayActivity {
+export interface DayActivity {
   activities: Activity[];
 }
 
-export interface PackageIteniaryType {
+export interface PackageItineraryType {    // fixed typo
   city: string;
   daysActivity: DayActivity[];
 }
@@ -28,7 +28,7 @@ export interface DestinationDetailsType {
   description: string;
 }
 
-export interface DetailedIntinearyType {
+export interface DetailedItineraryType {     // fixed typo
   title: string;
   value: string[];
 }
@@ -45,8 +45,8 @@ export interface TripType {
   themes: string[];
   price: number;
   destinationDetails: DestinationDetailsType[];
-  detailedIntineary: DetailedIntinearyType[];
+  detailedItinerary: DetailedItineraryType[];   // fixed typo
   description: string;
-  packageIteniary: PackageIteniaryType[];
+  packageItinerary: PackageItineraryType[];     // fixed typo
   scrapedOn: string;
 }

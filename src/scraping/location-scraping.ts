@@ -6,7 +6,7 @@ import { Page } from "puppeteer-core";
 interface PackageInfo {
   packageIteniary: never[];
   description: string;
-  detailedIntineary: never[];
+  detailedItinerary: never[];
   destinationDetails: never[];
   themes: never[];
   images: never[];
