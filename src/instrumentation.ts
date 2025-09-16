@@ -1,23 +1,18 @@
 import { startLocationScraping, startPackageScraping } from "./scraping";
+import { startFlightScraping } from "./scraping/flights-scraping"; // ✅ Add flight scraping import
 import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
-import { v4 as uuidv4 } from 'uuid'; // Import UUID properly
+import { v4 as uuidv4 } from 'uuid';
 
 console.log("🚀 instrumentation.ts loaded");
 
-// ✅ City Extraction Function
+// ✅ City Extraction Function (keeping your existing logic)
 function extractCityFromPackageName(packageName: string): string {
   if (!packageName) return "";
 
-  // Patterns to match common city names in travel package titles
   const cityPatterns = [
-    // "Beautiful Munnar & Thekkady" -> "Munnar & Thekkady"
     /(?:Beautiful|Scenic|Experience|Explore|Great|Stunning|Simply|Wickets.*?)\s+([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+With|\s+Journey|\s+Special|\s+Tour)/i,
-    
-    // "Holidays in Australia" -> "Australia"
     /(?:in|to|from)\s+([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+With)/i,
-    
-    // "Melbourne Special" -> "Melbourne"
     /([A-Z][a-zA-Z\s&]+?)(?:\s+\(|$|\s+-|\s+Tour|\s+Special)/i
   ];
 
@@ -26,10 +21,8 @@ function extractCityFromPackageName(packageName: string): string {
     if (match && match[1]) {
       let city = match[1].trim();
       
-      // Clean up common suffixes and prefixes
       city = city.replace(/\s+(Land Only|Self Drive|Deluxe|Premium|Cricket|Holidays|Tour|Special)$/i, '');
       
-      // Filter out obvious non-cities
       const nonCities = ['Land Only', 'Self Drive', 'Deluxe', 'Premium', 'Cricket', 'Holidays', 'Tour', 'Special', 'Journey'];
       if (!nonCities.some(nonCity => city.toLowerCase() === nonCity.toLowerCase()) && city.length > 0) {
         return city;
@@ -96,23 +89,21 @@ export const register = async () => {
 
           // Handle job types
           if (job.data.jobType.type === "location") {
+            // ✅ Keep your existing trip scraping logic intact
             console.log("📌 6. Starting location scrape...");
             await page.waitForSelector(".packages-container", { timeout: 6000000 });
             const rawPackages = await startLocationScraping(page);
             console.log(`✅ 7. Scraped ${rawPackages.length} packages from ${job.data.url}`);
 
-            // ✅ Transform packages to match Prisma schema exactly with city extraction
             const transformedPackages = rawPackages.map(pkg => {
-              // Extract city from package name if not already extracted in scraping
               const extractedCity = pkg.city || extractCityFromPackageName(pkg.name);
               
               return {
-                id: pkg.id || uuidv4(), // Use proper UUID
+                id: pkg.id || uuidv4(),
                 name: pkg.name || "Unnamed Package",
-                city: extractedCity, // ✅ Include extracted city
+                city: extractedCity,
                 nights: pkg.nights || 0,
                 days: pkg.days || 0,
-                // Convert arrays to JSON strings for database storage
                 destinationItinerary: JSON.stringify(pkg.destinationItinerary || []),
                 images: JSON.stringify(pkg.images || []),
                 inclusions: JSON.stringify(pkg.inclusions || []),
@@ -127,13 +118,11 @@ export const register = async () => {
               };
             });
 
-            // Save trips individually with error handling
             for (const trip of transformedPackages) {
               try {
                 await prisma.trips.create({ data: trip });
                 console.log(`✅ Saved trip: ${trip.name} (${trip.id}) - City: ${trip.city || 'No city'}`);
               } catch (e) {
-                // Handle duplicate key errors gracefully
                 if (String(e).includes('Unique constraint failed')) {
                   console.log(`⚠️ Trip ${trip.id} already exists, skipping`);
                 } else {
@@ -148,6 +137,7 @@ export const register = async () => {
             });
 
           } else if (job.data.jobType.type === "package") {
+            // ✅ Keep your existing package scraping logic intact
             console.log("📦 6. Starting package scrape...");
             const alreadyScraped = await prisma.trips.findUnique({
               where: { id: job.data.packageDetails.id },
@@ -157,13 +147,12 @@ export const register = async () => {
               const pkg = await startPackageScraping(page, job.data.packageDetails);
               console.log("✅ 7. Scraped package details:", pkg);
               
-              // ✅ Transform and save detailed package data with city extraction
               const extractedCity = pkg.city || extractCityFromPackageName(pkg.name);
               
               const transformedPackage = {
                 id: pkg.id || uuidv4(),
                 name: pkg.name || "Unnamed Package",
-                city: extractedCity, // ✅ Include extracted city
+                city: extractedCity,
                 nights: pkg.nights || 0,
                 days: pkg.days || 0,
                 destinationItinerary: JSON.stringify(pkg.destinationItinerary || []),
@@ -190,6 +179,43 @@ export const register = async () => {
                 console.error('❌ Failed to save detailed package:', e);
               }
             }
+
+          } else if (job.data.jobType.type === "flight") {
+            // ✅ Add flight scraping logic from YouTube reference
+            console.log("✈️ 6. Starting flight scrape...");
+            console.log("Connected! Navigating to " + job.data.url);
+            
+            const flights = await startFlightScraping(page);
+            console.log(`✅ 7. Scraped ${flights.length} flights from ${job.data.url}`);
+            
+            // Update job status to complete
+            await prisma.jobs.update({
+              where: { id: job.data.id },
+              data: { isComplete: true, status: "complete" },
+            });
+            
+            // Save flights to database
+            for (const flight of flights) {
+              try {
+                await prisma.flights.create({
+                  data: {
+                    name: flight.airlineName,
+                    logo: flight.airlineLogo,
+                    from: job.data.jobType.source || "",
+                    to: job.data.jobType.destination || "",
+                    departureTime: flight.departureTime,
+                    arrivalTime: flight.arrivalTime,
+                    duration: flight.flightDuration,
+                    price: flight.price,
+                    jobId: job.data.id,
+                  },
+                });
+                console.log(`✅ Saved flight: ${flight.airlineName} (${job.data.jobType.source} → ${job.data.jobType.destination})`);
+              } catch (e) {
+                console.error('❌ Failed to save flight:', flight.airlineName, e);
+              }
+            }
+
           } else {
             console.warn("⚠️ Unknown job type:", job.data.jobType);
           }

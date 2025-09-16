@@ -74,3 +74,17 @@ model Bookings {
   isCompleted Boolean @default(false)
   user User @relation(fields: [userId], references: [id])
 }
+
+model Flights {
+  id Int @default(autoincrement()) @id
+  name String
+  logo String
+  from String
+  to String
+  departureTime String
+  arrivalTime String
+  duration String
+  scrappedOn DateTime @default(now())
+  price Int
+  jobId Int
+}
