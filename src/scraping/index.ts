@@ -1,4 +1,9 @@
 import { startLocationScraping } from "./location-scraping";
 import { startPackageScraping } from "./package-scraping";
-export { startLocationScraping, startPackageScraping };
+import { startHotelScraping } from "./hotels-scraping";
+
+
+
+
+export { startLocationScraping, startPackageScraping, startHotelScraping };
 

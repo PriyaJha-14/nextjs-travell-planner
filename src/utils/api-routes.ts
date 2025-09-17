@@ -19,5 +19,10 @@ export const USER_API_ROUTES = {
     GET_USER_BOOKINGS: `${baseRoute}/booking/get-bookings`,
     FLIGHT_SCRAPE: `${baseRoute}/flights/scrape`,
     FLIGHT_SCRAPE_STATUS: `${baseRoute}/flights/scrape-status`,
+    HOTELS_SCRAPE: `${baseRoute}/hotels/scrape`,
+    HOTELS_SCRAPE_STATUS: `${baseRoute}/hotels/scrape-status`,
+    GET_ALL_BOOKINGS: `${baseRoute}/booking`,
+    GET_ALL_HOTELS: `${baseRoute}/all-hotels`,
+
 };
 

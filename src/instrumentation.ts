@@ -1,5 +1,6 @@
 import { startLocationScraping, startPackageScraping } from "./scraping";
-import { startFlightScraping } from "./scraping/flights-scraping"; // ✅ Add flight scraping import
+import { startFlightScraping } from "./scraping/flights-scraping";
+import { startHotelScraping } from "./scraping/hotels-scraping"; // ✅ Add hotel scraping import
 import { Browser } from "puppeteer-core";
 import { default as prisma } from "@/lib/prisma";
 import { v4 as uuidv4 } from 'uuid';
@@ -181,20 +182,18 @@ export const register = async () => {
             }
 
           } else if (job.data.jobType.type === "flight") {
-            // ✅ Add flight scraping logic from YouTube reference
+            // ✅ Keep your existing flight scraping logic intact
             console.log("✈️ 6. Starting flight scrape...");
             console.log("Connected! Navigating to " + job.data.url);
             
             const flights = await startFlightScraping(page);
             console.log(`✅ 7. Scraped ${flights.length} flights from ${job.data.url}`);
             
-            // Update job status to complete
             await prisma.jobs.update({
               where: { id: job.data.id },
               data: { isComplete: true, status: "complete" },
             });
             
-            // Save flights to database
             for (const flight of flights) {
               try {
                 await prisma.flights.create({
@@ -215,6 +214,49 @@ export const register = async () => {
                 console.error('❌ Failed to save flight:', flight.airlineName, e);
               }
             }
+
+          } else if (job.data.jobType.type === "hotels") {
+            // ✅ Add hotel scraping logic from YouTube reference
+            console.log("🏨 6. Starting hotel scrape...");
+            console.log("Connected! Navigating to " + job.data.url);
+            
+            await page.goto(job.data.url, { timeout: 120000 });
+            console.log("Navigated! Scraping page content...");
+            
+            const hotels = await startHotelScraping(
+              page,
+              browser,
+              job.data.location
+            );
+            console.log(`✅ 7. Scraped ${hotels.length} hotels from ${job.data.url}`);
+            console.log(`Scraping Complete, ${hotels.length} hotels found.`);
+            
+            // Update job status to complete
+            await prisma.jobs.update({
+              where: { id: job.data.id },
+              data: { isComplete: true, status: "complete" },
+            });
+            console.log("Job Marked as complete.");
+            
+            // Save hotels to database
+            console.log("Starting Loop for Hotels");
+            for (const hotel of hotels) {
+              try {
+                await prisma.hotels.create({
+                  data: {
+                    name: hotel.title,
+                    image: hotel.photo,
+                    price: hotel.price,
+                    jobId: job.data.id,
+                    location: job.data.location.toLowerCase(),
+                  },
+                });
+                console.log(`✅ Saved hotel: ${hotel.title} in ${job.data.location}`);
+              } catch (e) {
+                console.error('❌ Failed to save hotel:', hotel.title, e);
+              }
+            }
+            console.log("COMPLETE.");
 
           } else {
             console.warn("⚠️ Unknown job type:", job.data.jobType);

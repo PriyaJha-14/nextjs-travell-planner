@@ -88,3 +88,14 @@ model Flights {
   price Int
   jobId Int
 }
+
+
+model Hotels {
+  id Int @default(autoincrement()) @id
+  name String
+  image String
+  price Int
+  jobId Int
+  location String
+  scrappedOn DateTime @default(now())
+}
