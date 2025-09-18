@@ -5,6 +5,8 @@ export const ADMIN_API_ROUTES = {
     LOGIN: `${baseRoute}/api/admin/login`,
     CREATE_JOB: `${baseRoute}/admin/create-job`,
     JOB_DETAILS: `${baseRoute}/admin/jobs`, // Assuming this is the correct URL
+    DASHBOARD_METRICS:`${baseRoute}/dashboard/metrics`,
+    DASHBOARD_SCRAPING_CHART_DATA:`${baseRoute}/dashboard/scraping-chart-data`,
 };
 
 
@@ -23,6 +25,7 @@ export const USER_API_ROUTES = {
     HOTELS_SCRAPE_STATUS: `${baseRoute}/hotels/scrape-status`,
     GET_ALL_BOOKINGS: `${baseRoute}/booking`,
     GET_ALL_HOTELS: `${baseRoute}/all-hotels`,
+
 
 };
 
