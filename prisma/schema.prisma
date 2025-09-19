@@ -85,7 +85,7 @@ model Flights {
   arrivalTime String
   duration String
   scrappedOn DateTime @default(now())
-  price Int
+ price         Int?     @default(0)
   jobId Int
 }
 
