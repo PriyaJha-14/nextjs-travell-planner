@@ -59,7 +59,7 @@ const Flights = () => {
               key={flight.id}
               className="grid grid-cols-12  border border-gray-200 rounded-xl font-medium drop-shadow-md"
             >
-              <div className="col-span-9 bg-white rounded-l-xl p-10 flex flex-col gap-5">
+              <div className="col-span-9 bg-white rounded-l-xl p-10 flex flex-col gap-5 text-black">
                 <div className="grid grid-cols-4 gap-4">
                   <div className="flex flex-col gap-3 font-medium">
                     <div>
@@ -137,7 +137,7 @@ const Flights = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-5xl font-bold">${flight.price}</span>
+                    <span className="text-5xl font-bold text-black">${flight.price}</span>
                     <span className="text-blue-600">20% OFF</span>
                   </div>
                 </div>
