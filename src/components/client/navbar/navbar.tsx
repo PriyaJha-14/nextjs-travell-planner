@@ -31,14 +31,14 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
   const { userInfo, setUserInfo } = useAppStore();
   const routesWithImages = ["/", "/search-flights", "/search-hotels"];
 
-  // ✅ Fixed logout functionality with proper TypeScript handling
+  // ✅ UPDATED: Proper logout functionality that navigates to logout page
   const handleLogout = () => {
-    // Clear user info (handle null case properly)
-    setUserInfo(undefined as any); // or use the proper method your store expects
-    router.push("/"); // Redirect to home
+    // Navigate to the logout page which will handle server-side cookie deletion
+    // and client-side state clearing
+    router.push("/logout");
   };
 
-  // ✅ Handle dropdown actions
+  // ✅ UPDATED: Handle dropdown actions with proper logout handling
   const handleDropdownAction = (key: string) => {
     if (key === "logout") {
       handleLogout();
