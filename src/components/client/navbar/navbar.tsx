@@ -33,12 +33,12 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
 
   // ✅ UPDATED: Proper logout functionality that navigates to logout page
   const handleLogout = () => {
-    // Navigate to the logout page which will handle server-side cookie deletion
-    // and client-side state clearing
-    router.push("/logout");
+    // Clear user info (handle null case properly)
+    setUserInfo(undefined as any); // or use the proper method your store expects
+    router.push("/"); // Redirect to home
   };
 
-  // ✅ UPDATED: Handle dropdown actions with proper logout handling
+  // ✅ Handle dropdown actions
   const handleDropdownAction = (key: string) => {
     if (key === "logout") {
       handleLogout();
