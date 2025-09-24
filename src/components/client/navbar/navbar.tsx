@@ -90,7 +90,7 @@ const Navbar = ({ onOpen }: { onOpen: () => void }) => {
               aria-current="page"
               className={`${pathname === "/" ? "text-danger-500" : "text-white"}`}
             >
-              Tours
+              {/* Tours */}
             </Link>
           </NavbarItem>
           <NavbarItem>
